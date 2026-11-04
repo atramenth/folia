@@ -1,0 +1,11 @@
+{
+  "name": "Folia",
+  "short_name": "Folia",
+  "description": "A mobile first slideshow of the book's page images.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#08090b",
+  "theme_color": "#08090b",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
