@@ -1,106 +1,206 @@
-# Folia
+<div align="center">
 
-A mobile first slideshow for the book's page images, in the art direction of [Atramenth](https://atramenth.github.io): flat Slate and Paper themes, Cormorant Garamond with Jost, quiet controls.
+<picture>
+  <source media="(prefers-reduced-motion: reduce)" srcset="assets/banner.webp">
+  <img src="assets/banner.webp" width="100%" alt="Folia: a scanned book, read page by page in a quiet mobile reader. A quiet mobile reader for scanned book pages."/>
+</picture>
 
-Live address after deploy: `https://atramenth.github.io/folia/`
+<br/>
 
-Built with React and TypeScript (object oriented services and controllers), Vite, and GitHub Pages. No runtime dependency besides React.
+<img src="assets/badges/mobile-first.svg" height="32" alt="Mobile first"/>
+<img src="assets/badges/themes.svg" height="32" alt="Slate and Paper themes"/>
+<img src="assets/badges/github-pages.svg" height="32" alt="GitHub Pages"/>
 
-## What it does
+<br/>
 
-- Swipe to turn pages with a real sliding track, edge resistance and flick momentum
-- Pinch, double tap or mouse wheel to zoom, drag to pan
-- A page scrubber made for 1,200 pages: drag to travel, slide your finger up while dragging to slow down and land on an exact page. Nothing loads until you let go
-- Go to any page number, jump by section, move by 10 or 100, and keep bookmarks
-- Slideshow with 3, 5, 8 or 12 seconds per page, with a thin progress line
-- Remembers your place, and every page has its own link: `#/p/812`
-- Preloads the next two pages and the previous one, and respects the device's Save Data setting
-- Slate, Paper or Auto theme, reduced motion support, keyboard control, screen reader labels
+<a href="https://react.dev"><img src="assets/badges/react.svg" height="32" alt="React"/></a>
+<a href="https://www.typescriptlang.org"><img src="assets/badges/typescript.svg" height="32" alt="TypeScript"/></a>
+<a href="https://vite.dev"><img src="assets/badges/vite.svg" height="32" alt="Vite"/></a>
+<img src="assets/badges/node.svg" height="32" alt="Node.js"/>
 
-Keys: arrows or Page Up and Down turn pages, Space plays or pauses, G goes to a page, B bookmarks, F full screen, 0 resets zoom, Home and End.
+<br/>
 
-## Add the page images
+<img src="assets/badges/accessibility.svg" height="32" alt="Accessibility"/>
+<img src="assets/badges/deep-links.svg" height="32" alt="Deep links"/>
+<img src="assets/badges/no-backend.svg" height="32" alt="No backend"/>
 
-Put every image in one folder, `public/pages/`, named by its printed page number:
+<br/><br/>
 
+*A quiet, mobile-first way to read a book as it was printed: one scanned page at a time.*
+
+<br/>
+
+[Overview](#overview) · [Reading](#reading) · [Features](#features) · [Architecture](#architecture) · [Pages](#page-images) · [Design](#design) · [Getting started](#getting-started) · [Deployment](#deployment)
+
+</div>
+
+---
+
+<a id="overview"></a>
+## <img src="assets/icons/book.svg" width="24" height="24" align="absmiddle" alt=""/> Overview
+
+**Folia** is Atramenth’s sister project for a book that lives in its scanned pages. Where Atramenth presents the printed text as a digital reader, Folia lets the original page images speak for themselves: paper, ink, margins and all.
+
+The viewer is built to read slowly and comfortably:
+
+- **Page by page.** Open a scan and move through the book with a real sliding track.
+- **Made for touch.** Swipe to turn; pinch or double tap to zoom; drag to inspect a page.
+- **Quiet by design.** Slate and Paper themes, Cormorant Garamond with Jost, and controls that stay out of the way.
+- **Your place stays yours.** No account or backend. Folia remembers progress and bookmarks on the device.
+
+The live site will be [atramenth.github.io/folia](https://atramenth.github.io/folia/) after deployment.
+
+![Folia reading flow](assets/folio.svg)
+
+---
+
+<a id="reading"></a>
+## <img src="assets/icons/phone.svg" width="24" height="24" align="absmiddle" alt=""/> Reading
+
+| Action | How |
+|---|---|
+| Turn a page | Swipe, use the previous and next controls, or press the arrow keys / Page Up and Page Down |
+| Zoom | Pinch, double tap, or use the mouse wheel; drag to pan |
+| Find a page | Open **Go to page**, enter its number, or jump by section |
+| Move through a long book | Drag the scrubber; slide upward while dragging to slow down for precise placement |
+| Bookmark a page | Press **B** or use the bookmark control |
+| Start a slideshow | Press **Space** or use the playback control; choose 3, 5, 8 or 12 seconds per page |
+| Reset zoom | Press **0** |
+| Full screen | Press **F** |
+
+Each page has its own address, such as `#/p/812`. Folia restores the last reading position when you return.
+
+---
+
+<a id="features"></a>
+## <img src="assets/icons/spark.svg" width="24" height="24" align="absmiddle" alt=""/> Features
+
+- Sliding page track with edge resistance and flick momentum
+- Pinch, double tap and wheel zoom, with drag-to-pan
+- Long-book scrubber designed for precise navigation across 1,200 pages
+- Go to page, section jumps, and 10-page or 100-page steps
+- Bookmarks and a saved reading position
+- Slideshow at 3, 5, 8 or 12 seconds per page, with a progress line
+- Hash deep links, for example `#/p/812`
+- Preloads the next two pages and previous page; respects the device’s Save Data setting
+- Slate, Paper and Auto themes
+- Reduced motion, keyboard controls and screen-reader labels
+
+---
+
+<a id="architecture"></a>
+## <img src="assets/icons/layers.svg" width="24" height="24" align="absmiddle" alt=""/> Architecture
+
+![Folia architecture](assets/architecture.svg)
+
+Folia is built with React and TypeScript, using object-oriented services and controllers. Vite produces a static site for GitHub Pages; at runtime the only library dependency is React.
+
+- **Catalog:** `src/data/catalog.ts` defines the ordered sections and printed page ranges. The viewer, section labels, scrubber, jump sheet and page check share this source.
+- **Gestures:** `StageController` handles swipe, pinch, pan, double tap and wheel input. `ScrubModel` controls precision while scrubbing.
+- **Services:** Stores persist settings, progress and bookmarks. `PageImages` resolves image URLs and preloads nearby pages; `HashLocation` follows the current page; `Slideshow` advances on a timer.
+- **Interface:** `Stage`, `Slide`, `Scrubber`, `JumpSheet` and `SettingsSheet` make up the reader.
+
+---
+
+<a id="page-images"></a>
+## <img src="assets/icons/folder.svg" width="24" height="24" align="absmiddle" alt=""/> Page images
+
+The book contains 1,221 page images, named by printed page number. The configured sections are:
+
+| Section | Printed pages |
+|---|---:|
+| Book | 1–1196 |
+| Introduction | 1199–1220 |
+| Index | 1221–1223 |
+
+Pages 1197 and 1198 are intentionally absent. The page catalog expects filenames in the form `1.avif`, `2.avif`, and so on, without zero padding. The page checker reports missing or unexpected files; strict mode also exits with an error when files are missing.
+
+```bash
+npm run check:pages
+npm run check:pages:strict
 ```
-public/pages/1.avif
-public/pages/2.avif
-...
-public/pages/1196.avif
-public/pages/1199.avif      (Introduction, 1199 to 1220)
-...
-public/pages/1220.avif
-public/pages/1221.avif      (Index, 1221 to 1223)
-public/pages/1222.avif
-public/pages/1223.avif
-```
 
-That is 1,221 images. Pages 1197 and 1198 are skipped on purpose. Do not zero pad the names (`1.avif`, not `0001.avif`).
+---
 
-Check what is in place:
+<a id="design"></a>
+## <img src="assets/icons/palette.svg" width="24" height="24" align="absmiddle" alt=""/> Design
 
-```
-npm run check:pages          # lists missing and unexpected files
-npm run check:pages:strict   # same, but exits with an error if anything is missing
-```
+![Atramenth design system](assets/design-system.svg)
 
-The deploy workflow runs the check and prints the result, but it does not stop the site from going live, so you can upload in batches.
+Folia shares Atramenth’s restrained visual language: flat Slate and Paper themes, measured typography and quiet controls. Cormorant Garamond carries the editorial character; Jost keeps interface labels clear. The page scan remains the focus.
 
-### Uploading about 1,200 files
+---
 
-- The GitHub website accepts at most 100 files per upload, so use Git or GitHub Desktop instead.
-- Push in a few commits so no single push is huge, for example 300 images at a time.
-- Each file must be under 100 MB (yours are far smaller). Plan for roughly 400 to 600 KB per page, about 500 to 700 MB in total. GitHub recommends keeping a repository under 1 GB and a published Pages site is limited to 1 GB, so avoid adding other large files.
-- If you need to reduce the size later, lower the image width to about 1600 px. Nothing in the code depends on the image dimensions.
+<a id="accessibility"></a>
+## <img src="assets/icons/access.svg" width="24" height="24" align="absmiddle" alt=""/> Accessibility and privacy
 
-## Develop
+- Keyboard controls cover page turns, slideshow, page navigation, bookmarks, zoom and full screen.
+- Screen-reader labels identify controls and reading state.
+- Reduced-motion preferences are respected.
+- The current page, bookmarks, settings and progress are stored locally on the device.
+- No account or backend is required.
 
-```
+---
+
+<a id="getting-started"></a>
+## <img src="assets/icons/terminal.svg" width="24" height="24" align="absmiddle" alt=""/> Getting started
+
+**Requirements:** Node.js and npm.
+
+```bash
 npm install
 npm run dev
 ```
 
-Open the printed address. Use the `#/p/N` form to start on a page, for example `http://localhost:5173/#/p/812`.
+Open the local address printed by Vite. To start at a page, use a hash route such as `http://localhost:5173/#/p/812`.
 
-```
-npm run build     # type check and production build into dist/
-npm run preview   # serve the production build
-```
-
-## Deploy
-
-1. Create the repository `atramenth/folia` on GitHub and push this project to the `main` branch.
-2. In the repository go to Settings, then Pages, and set Source to **GitHub Actions**.
-3. Every push to `main` builds and publishes the site through `.github/workflows/deploy.yml`.
-
-The build uses a relative base path and hash links, so it works under any repository name and needs no 404 redirect. If you rename the repository, nothing in the code has to change.
-
-## Change the page ranges
-
-All ranges live in one place, `src/data/catalog.ts`:
-
-```ts
-export const SECTIONS = [
-  { id: "book", label: "Book", from: 1, to: 1196 },
-  { id: "introduction", label: "Introduction", from: 1199, to: 1220 },
-  { id: "index", label: "Index", from: 1221, to: 1223 },
-];
+```bash
+npm run check:pages   # report missing or unexpected page images
+npm run build         # type check and production build into dist/
+npm run preview       # serve the production build locally
 ```
 
-The scrubber, the Go to sheet, the section label, the preload logic and the file check all follow it.
+---
 
-## Structure
+<a id="deployment"></a>
+## <img src="assets/icons/cloud.svg" width="24" height="24" align="absmiddle" alt=""/> Deployment
+
+![GitHub Pages deployment](assets/deploy.svg)
+
+The project is published at **https://atramenth.github.io/folia/** through `.github/workflows/deploy.yml`. Push to `main` to build and publish with GitHub Actions. In repository settings, choose **Settings → Pages → Build and deployment → GitHub Actions** as the source.
+
+The app uses a relative Vite base path and hash routes, so it can be hosted beneath a repository path without a 404 redirect.
+
+---
+
+<a id="structure"></a>
+## <img src="assets/icons/folder.svg" width="24" height="24" align="absmiddle" alt=""/> Project structure
 
 ```
-src/data        catalog.ts, the sections and page ranges
-src/domain      PageCatalog (ordered pages and sections), ScrubModel (scrubbing speed rules)
-src/gestures    StageController (swipe, pinch, pan, double tap, wheel)
-src/services    Store base class, SettingsStore, ProgressStore, BookmarkStore,
-                PageImages (urls and preloading), HashLocation, Slideshow
-src/hooks       useStore, useViewer
-src/components  Stage, Slide, Scrubber, JumpSheet, SettingsSheet, Sheet, Hint, Icons
-src/styles      app.css, all design tokens and layout
-scripts         check-pages.ts
-public/pages    the page images (you add these)
+folia/
+├── assets/                  README artwork, badges and diagrams
+├── public/pages/            Scanned book pages, named by printed page number
+├── scripts/check-pages.ts   Reports missing and unexpected page images
+├── src/
+│   ├── data/catalog.ts      Ordered sections and printed page ranges
+│   ├── domain/              PageCatalog and ScrubModel
+│   ├── gestures/            StageController
+│   ├── services/            Stores, page images, hash location and slideshow
+│   ├── hooks/               useStore and useViewer
+│   ├── components/          Stage, Slide, Scrubber and settings sheets
+│   └── styles/app.css       Design tokens, layout and themes
+├── .github/workflows/       GitHub Pages deployment
+├── index.html
+├── package.json
+└── vite.config.ts
 ```
+
+---
+
+<div align="center">
+
+<img src="assets/footer.svg" width="640" alt="Atramenth: a quiet reader in Slate and Paper."/>
+
+</div>
+
+
