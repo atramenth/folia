@@ -115,15 +115,15 @@ export default function App() {
 
   const onTap = useCallback(
     (zone: TapZone) => {
-      const edge = live.current.s.edgeTaps;
       if (live.current.mode === "flow") {
-        if (zone === "start" && edge) flow.current?.scrollScreen(-1);
-        else if (zone === "end" && edge) flow.current?.scrollScreen(1);
+        // Edge scrolling is opt in: by default a tap only shows or hides the controls.
+        if (zone === "start") flow.current?.scrollScreen(-1);
+        else if (zone === "end") flow.current?.scrollScreen(1);
         else setChrome((c) => !c);
         return;
       }
-      if (edge && zone === "start") step(-1);
-      else if (edge && zone === "end") step(1);
+      if (zone === "start") step(-1);
+      else if (zone === "end") step(1);
       else setChrome((c) => !c);
     },
     [step],
@@ -284,7 +284,7 @@ export default function App() {
           initialIndex={index}
           zoom={s.zoom}
           readZoom={s.readZoom}
-          edgeTaps={s.edgeTaps}
+          edgeTaps={s.edgeScroll}
           onIndex={goTo}
           onTap={onTap}
           onScrollDirection={onScrollDirection}

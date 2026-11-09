@@ -95,17 +95,19 @@ export function SettingsSheet({ catalog, onClose }: { catalog: PageCatalog; onCl
         </div>
       </div>
 
-      <div className="setting">
-        <div className="setting__label">Tap the top or bottom edge to move on</div>
-        <div className="seg seg--tight" role="radiogroup" aria-label="Edge taps">
-          <button type="button" role="radio" aria-checked={s.edgeTaps} className={s.edgeTaps ? "is-on" : ""} onClick={() => settings.setEdgeTaps(true)}>
-            On
-          </button>
-          <button type="button" role="radio" aria-checked={!s.edgeTaps} className={!s.edgeTaps ? "is-on" : ""} onClick={() => settings.setEdgeTaps(false)}>
-            Off
-          </button>
+      {s.mode === "flow" && (
+        <div className="setting">
+          <div className="setting__label">Tap the top or bottom edge to scroll a screen</div>
+          <div className="seg seg--tight" role="radiogroup" aria-label="Edge scroll">
+            <button type="button" role="radio" aria-checked={s.edgeScroll} className={s.edgeScroll ? "is-on" : ""} onClick={() => settings.setEdgeScroll(true)}>
+              On
+            </button>
+            <button type="button" role="radio" aria-checked={!s.edgeScroll} className={!s.edgeScroll ? "is-on" : ""} onClick={() => settings.setEdgeScroll(false)}>
+              Off
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="setting">
         <div className="setting__label">Auto scroll, seconds on each page</div>

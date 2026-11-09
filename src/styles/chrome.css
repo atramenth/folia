@@ -61,14 +61,15 @@
   bottom: calc(env(safe-area-inset-bottom) + 6rem);
   width: 2.3rem;
   z-index: 15;
-  touch-action: none;
-  cursor: pointer;
+  pointer-events: none;
   opacity: 0.8;
   outline-offset: -2px;
   transition: top 0.45s var(--ease-settle), bottom 0.45s var(--ease-settle), opacity 0.2s;
 }
 .viewer[data-chrome="off"] .rail { top: calc(env(safe-area-inset-top) + 1rem); bottom: calc(env(safe-area-inset-bottom) + 2.6rem); }
 .rail.is-active { opacity: 1; }
+.rail__grab { position: absolute; right: 0; top: calc(var(--frac, 0) * 100%); width: 2.6rem; height: 3.6rem; transform: translateY(-50%); pointer-events: auto; touch-action: none; cursor: grab; border-radius: 1rem; outline-offset: -4px; }
+.rail.is-active .rail__grab { cursor: grabbing; }
 .rail__track { position: absolute; inset: 0 0 0 auto; width: 100%; }
 .rail__line { position: absolute; right: 0.62rem; top: 0; bottom: 0; width: 2px; margin-right: -1px; border-radius: 2px; background: var(--border-strong); }
 .rail__tick { position: absolute; right: 0.62rem; width: 7px; height: 1px; margin: 0 0 0 0; transform: translateX(3.5px); background: var(--text-3); pointer-events: none; }

@@ -61,10 +61,10 @@ Folia opens as one continuous column: the whole book scrolls like a single long 
 
 | Action | How |
 |---|---|
-| Read on | Scroll. The top or bottom edge of the screen moves almost one screen when tapped |
+| Read on | Scroll. Optional: in Display, turn on edge scroll to move a screen by tapping the top or bottom edge |
 | Hide or show the controls | Tap the middle of the page. They also tuck away as you scroll down and return as you scroll up |
 | Make the page larger | Pinch, double tap, or use the size slider in Display. The size is remembered from page to page |
-| Travel far | Drag the gilt line on the right edge. A large page number follows your thumb; slide left to slow down |
+| Travel far | Grab the gilt handle on the right edge and drag. Only the handle reacts, so scrolling near the edge is safe. A large page number follows your thumb; slide left to slow down |
 | Jump anywhere | Open **Navigate** (the grid button): the Book Map, Contents, Marks, or type a page number |
 | Come back | After a long jump, a **Back to page** chip stays for a few seconds |
 | Bookmark | The bookmark button, or **B**. Add a short note in Navigate, Marks |
