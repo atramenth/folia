@@ -8,7 +8,7 @@ export class PageImages {
   private readonly capacity: number;
   private readonly warm = new Map<number, HTMLImageElement>();
 
-  constructor(base: string, dir: string, ext: string, capacity = 6) {
+  constructor(base: string, dir: string, ext: string, capacity = 8) {
     this.base = base;
     this.dir = dir;
     this.ext = ext;

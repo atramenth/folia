@@ -1,6 +1,6 @@
 import { useEffect, useImperativeHandle, useLayoutEffect, useRef, type Ref } from "react";
 import type { PageCatalog } from "../domain/PageCatalog.ts";
-import type { Direction } from "../domain/types.ts";
+import type { Direction, TapZone } from "../domain/types.ts";
 import { StageController } from "../gestures/StageController.ts";
 import { Slide } from "./Slide.tsx";
 
@@ -13,7 +13,7 @@ interface Props {
   catalog: PageCatalog;
   index: number;
   onNavigate: (direction: Direction) => void;
-  onTap: () => void;
+  onTap: (zone: TapZone) => void;
   onZoomChange: (zoomed: boolean) => void;
   handleRef: Ref<StageHandle>;
 }
@@ -31,7 +31,7 @@ export function Stage({ catalog, index, onNavigate, onTap, onZoomChange, handleR
     const ctl = new StageController(stageEl.current!, trackEl.current!, {
       canNavigate: (d) => latest.current.catalog.canMove(latest.current.index, d),
       onNavigate: (d) => latest.current.onNavigate(d),
-      onTap: () => latest.current.onTap(),
+      onTap: (zone) => latest.current.onTap(zone),
       onZoomChange: (z) => latest.current.onZoomChange(z),
     });
     controller.current = ctl;

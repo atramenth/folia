@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { pageImages } from "../services/library.ts";
+import { IconStar } from "./Icons.tsx";
 
 interface Props {
   page: number;
@@ -38,17 +39,16 @@ export function Slide({ page, offset }: Props) {
         />
         {status === "loading" && (
           <div className="slide__state" role="status">
-            <svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true">
-              <circle cx="24" cy="24" r="20" className="spin-track" />
-              <circle cx="24" cy="24" r="20" className="spin-arc" />
-            </svg>
+            <span className="spinner" aria-hidden="true">
+              <IconStar size={34} />
+            </span>
             <span>{page}</span>
           </div>
         )}
         {status === "error" && (
           <div className="slide__state" data-no-gesture>
             <strong>Page {page} did not load</strong>
-            <span>Check the connection, or that pages/{page}.avif exists.</span>
+            <span>Check the connection, then try again.</span>
             <button
               type="button"
               className="btn"

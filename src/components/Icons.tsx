@@ -77,3 +77,70 @@ export const IconScrub = () => (
     <circle cx="14" cy="12" r="3" fill="currentColor" />
   </Svg>
 );
+
+/** The eight pointed star of two overlapping squares: the mark of the app. */
+export const IconStar = ({ size = 22 }: { size?: number }) => (
+  <Svg size={size}>
+    <path d="M5.6 5.6h12.8v12.8H5.6zM12 2.95l9.05 9.05L12 21.05 2.95 12z" />
+  </Svg>
+);
+export const IconMap = () => (
+  <Svg>
+    <path d="M5 5h3.5v3.5H5zM10.25 5h3.5v3.5h-3.5zM15.5 5H19v3.5h-3.5zM5 10.25h3.5v3.5H5zM10.25 10.25h3.5v3.5h-3.5zM15.5 10.25H19v3.5h-3.5zM5 15.5h3.5V19H5zM10.25 15.5h3.5V19h-3.5z" />
+  </Svg>
+);
+export const IconList = () => (
+  <Svg>
+    <path d="M9 6.5h10.5M9 12h10.5M9 17.5h10.5" />
+    <path d="M4.5 6.5h.01M4.5 12h.01M4.5 17.5h.01" strokeWidth="2.4" />
+  </Svg>
+);
+export const IconDisplay = () => (
+  <Svg>
+    <path d="M3.5 18.5 8 6.5l4.5 12M5 14.5h6" />
+    <path d="M14.5 18.5l3-8 3 8M15.5 16h4" />
+  </Svg>
+);
+export const IconReturn = () => (
+  <Svg size={18}>
+    <path d="M9 4.5 4.5 9 9 13.5" />
+    <path d="M5 9h9.5a5 5 0 0 1 0 10H11" />
+  </Svg>
+);
+export const IconScroll = () => (
+  <Svg>
+    <path d="M8 3.5h8M8 20.5h8M12 6.5v11M9 14.5l3 3 3-3M9 9.5l3-3 3 3" />
+  </Svg>
+);
+export const IconPages = () => (
+  <Svg>
+    <path d="M7 4.5h10a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1z" />
+    <path d="M9.5 9h5M9.5 12.5h5" />
+  </Svg>
+);
+export const IconCheck = () => (
+  <Svg size={16}>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </Svg>
+);
+export const IconPlus = () => (
+  <Svg>
+    <path d="M12 5.5v13M5.5 12h13" />
+  </Svg>
+);
+export const IconMinus = () => (
+  <Svg>
+    <path d="M5.5 12h13" />
+  </Svg>
+);
+export const IconSearch = () => (
+  <Svg>
+    <circle cx="11" cy="11" r="6" />
+    <path d="m15.5 15.5 4 4" />
+  </Svg>
+);
+export const IconTrash = () => (
+  <Svg size={18}>
+    <path d="M5 7h14M10 7V5h4v2M7.5 7l.7 12h7.6l.7-12" />
+  </Svg>
+);

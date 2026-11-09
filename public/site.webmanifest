@@ -1,11 +1,12 @@
 {
   "name": "Folia",
   "short_name": "Folia",
-  "description": "A mobile first slideshow of the book's page images.",
+  "description": "A quiet, mobile first reader for a book of more than a thousand scanned pages.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#08090b",
-  "theme_color": "#08090b",
+  "orientation": "any",
+  "background_color": "#07080a",
+  "theme_color": "#07080a",
   "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
 }

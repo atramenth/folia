@@ -1,9 +1,9 @@
-import type { Direction } from "../domain/types.ts";
+import type { Direction, TapZone } from "../domain/types.ts";
 
 export interface StageHooks {
   canNavigate(direction: Direction): boolean;
   onNavigate(direction: Direction): void;
-  onTap(): void;
+  onTap(zone: TapZone): void;
   onZoomChange(zoomed: boolean): void;
 }
 
@@ -18,6 +18,8 @@ const MAX_SCALE = 6;
 const DOUBLE_TAP_SCALE = 2.4;
 const TAP_WINDOW_MS = 260;
 const SLOP = 8;
+/** A tap this close to the left or right edge turns the page instead of toggling the controls. */
+const EDGE_ZONE = 0.2;
 const SLIDE_MS = 280;
 const ZOOM_EASE = "transform 0.25s cubic-bezier(0, 0, 0.2, 1)";
 
@@ -26,7 +28,7 @@ const ZOOM_EASE = "transform 0.25s cubic-bezier(0, 0, 0.2, 1)";
  *
  * - one finger drags the three slide track to turn pages (with momentum and edge resistance)
  * - two fingers pinch to zoom, one finger pans while zoomed
- * - double tap toggles zoom, a single tap toggles the controls
+ * - double tap toggles zoom; a single tap at the edge turns the page, in the middle it toggles the controls
  *
  * It moves elements directly (no React renders while a finger is down), which keeps
  * dragging smooth on phones. React only hears about finished page turns and taps.
@@ -261,9 +263,12 @@ export class StageController {
       return;
     }
     this.lastTap = { t: now, x: e.clientX, y: e.clientY };
+    const r = this.stage.getBoundingClientRect();
+    const f = (e.clientX - r.left) / Math.max(1, r.width);
+    const zone: TapZone = f < EDGE_ZONE ? "start" : f > 1 - EDGE_ZONE ? "end" : "middle";
     this.tapTimer = window.setTimeout(() => {
       this.lastTap = null;
-      this.hooks.onTap();
+      this.hooks.onTap(zone);
     }, TAP_WINDOW_MS);
   }
 
