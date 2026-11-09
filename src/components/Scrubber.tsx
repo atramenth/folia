@@ -24,7 +24,7 @@ interface Drag {
 
 /**
  * The fast scroll rail on the right edge of the screen, for travelling a very long book.
- * Touch it and the page number appears beside your thumb; slide left to slow down and land on an
+ * Grab the handle and the page number appears beside your thumb; slide left to slow down and land on an
  * exact page. Nothing loads until you let go. Where the handle sits comes from the --frac variable
  * the reader keeps up to date, so scrolling moves it without rendering anything.
  */
@@ -33,6 +33,7 @@ export function Scrubber({ count, value, sections, chapters, saved, labelFor, ca
   const geo = useRef<{ top: number; height: number; x: number } | null>(null);
   /** Where a touch began, until it has moved far enough to count as a drag rather than a tap. */
   const pending = useRef<number | null>(null);
+  const track = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
 
   const shown = drag ? drag.value : value;
@@ -54,49 +55,8 @@ export function Scrubber({ count, value, sections, chapters, saved, labelFor, ca
   };
 
   return (
-    <div
-      className={`rail${drag ? " is-active" : ""}`}
-      role="slider"
-      tabIndex={0}
-      aria-label="Position in the book"
-      aria-orientation="vertical"
-      aria-valuemin={1}
-      aria-valuemax={count}
-      aria-valuenow={shown + 1}
-      aria-valuetext={`Page ${labelFor(shown)}`}
-      onKeyDown={onKeyDown}
-      onPointerDown={(e) => {
-        const r = e.currentTarget.querySelector(".rail__track")!.getBoundingClientRect();
-        geo.current = { top: r.top, height: r.height, x: r.right };
-        e.currentTarget.setPointerCapture(e.pointerId);
-        // A tap on the edge must not jump through the book: only a drag travels.
-        pending.current = e.clientY;
-      }}
-      onPointerMove={(e) => {
-        if (!geo.current) return;
-        if (!drag) {
-          if (pending.current === null || Math.abs(e.clientY - pending.current) < 6) return;
-          pending.current = null;
-          const v = model.begin(e.clientY - geo.current.top, geo.current.height);
-          setDrag({ value: v, rate: null });
-          onPreview(v);
-          return;
-        }
-        const away = Math.max(0, geo.current.x - e.clientX - 24);
-        const v = model.move(e.clientY - geo.current.top, away);
-        setDrag({ value: v, rate: model.rateLabel(away) });
-        onPreview(v);
-      }}
-      onPointerUp={() => {
-        pending.current = null;
-        finish(true);
-      }}
-      onPointerCancel={() => {
-        pending.current = null;
-        finish(false);
-      }}
-    >
-      <div className="rail__track">
+    <div className={`rail${drag ? " is-active" : ""}`}>
+      <div className="rail__track" ref={track}>
         <i className="rail__line" />
         {sections.map((m) => (
           <i key={`s${m}`} className="rail__tick rail__tick--section" style={{ top: `${at(m)}%` }} />
@@ -108,6 +68,49 @@ export function Scrubber({ count, value, sections, chapters, saved, labelFor, ca
           <i key={`b${m}`} className="rail__tick rail__tick--saved" style={{ top: `${at(m)}%` }} />
         ))}
         <span className="rail__thumb" style={drag ? { top: `${at(drag.value)}%` } : undefined} />
+        {/* Only the handle can be grabbed, so scrolling with a thumb near the edge never starts a jump. */}
+        <div
+          className="rail__grab"
+          style={drag ? { top: `${at(drag.value)}%` } : undefined}
+          role="slider"
+          tabIndex={0}
+          aria-label="Position in the book"
+          aria-orientation="vertical"
+          aria-valuemin={1}
+          aria-valuemax={count}
+          aria-valuenow={shown + 1}
+          aria-valuetext={`Page ${labelFor(shown)}`}
+          onKeyDown={onKeyDown}
+          onPointerDown={(e) => {
+            const r = track.current!.getBoundingClientRect();
+            geo.current = { top: r.top, height: r.height, x: r.right };
+            e.currentTarget.setPointerCapture(e.pointerId);
+            pending.current = e.clientY;
+          }}
+          onPointerMove={(e) => {
+            if (!geo.current) return;
+            if (!drag) {
+              if (pending.current === null || Math.abs(e.clientY - pending.current) < 6) return;
+              pending.current = null;
+              const v = model.begin(e.clientY - geo.current.top, geo.current.height);
+              setDrag({ value: v, rate: null });
+              onPreview(v);
+              return;
+            }
+            const away = Math.max(0, geo.current.x - e.clientX - 24);
+            const v = model.move(e.clientY - geo.current.top, away);
+            setDrag({ value: v, rate: model.rateLabel(away) });
+            onPreview(v);
+          }}
+          onPointerUp={() => {
+            pending.current = null;
+            finish(true);
+          }}
+          onPointerCancel={() => {
+            pending.current = null;
+            finish(false);
+          }}
+        />
         {drag && (
           <div className="rail__bubble" style={{ top: `clamp(2.2rem, ${at(drag.value)}%, calc(100% - 2.2rem))` }} aria-hidden="true">
             <strong>{labelFor(drag.value)}</strong>

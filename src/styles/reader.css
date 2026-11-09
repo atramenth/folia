@@ -25,6 +25,10 @@
   touch-action: pan-x pan-y;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   outline: 0;
 }
 .flow::-webkit-scrollbar { display: none; }

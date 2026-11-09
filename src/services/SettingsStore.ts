@@ -24,13 +24,13 @@ export interface Settings {
   tone: ToneChoice;
   /** Page brightness from 0.55 to 1. */
   dim: number;
-  /** Tap the top or bottom (or left and right) edge of the page to move on. */
-  edgeTaps: boolean;
+  /** In the continuous reader, tap the top or bottom edge to scroll a screen. Off by default so a tap never moves the page. */
+  edgeScroll: boolean;
 }
 
 export class SettingsStore extends Store<Settings> {
   constructor() {
-    super("folia:settings", { theme: "auto", seconds: 5, loop: true, mode: "flow", zoom: 1, readZoom: 1.8, tone: "original", dim: 1, edgeTaps: true });
+    super("folia:settings", { theme: "auto", seconds: 5, loop: true, mode: "flow", zoom: 1, readZoom: 1.8, tone: "original", dim: 1, edgeScroll: false });
     this.apply();
   }
 
@@ -66,8 +66,8 @@ export class SettingsStore extends Store<Settings> {
     this.apply();
   }
 
-  setEdgeTaps(edgeTaps: boolean): void {
-    this.patch({ edgeTaps });
+  setEdgeScroll(edgeScroll: boolean): void {
+    this.patch({ edgeScroll });
   }
 
   /** Reflect settings onto <html> so CSS can react. */

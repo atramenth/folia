@@ -73,6 +73,8 @@ export function Flow({ catalog, initialIndex, zoom, readZoom, edgeTaps, onIndex,
   const zoomRef = useRef(zoom);
   const emitted = useRef(initialIndex);
   const quietUntil = useRef(0);
+  /** When the column last moved, so a touch that merely stops a fling is not taken for a tap. */
+  const lastMoved = useRef(0);
   const autoFrame = useRef(0);
   const zoomFrame = useRef(0);
   const [range, setRange] = useState<[number, number]>(() => [Math.max(0, initialIndex - 1), Math.min(catalog.lastIndex, initialIndex + 1)]);
@@ -241,7 +243,7 @@ export function Flow({ catalog, initialIndex, zoom, readZoom, edgeTaps, onIndex,
 
   // A zoom chosen elsewhere (the display sheet) is applied around the middle of the screen.
   useEffect(() => {
-    if (Math.abs(zoom - zoomRef.current) < 0.005) return;
+    if (Math.abs(zoom - zoomRef.current) < 0.012) return;
     const el = box.current!;
     cancelAnimationFrame(zoomFrame.current);
     const mx = el.clientWidth / 2;
@@ -297,6 +299,7 @@ export function Flow({ catalog, initialIndex, zoom, readZoom, edgeTaps, onIndex,
       }
     };
     const onScroll = () => {
+      lastMoved.current = performance.now();
       if (!frame) frame = requestAnimationFrame(tick);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
@@ -314,7 +317,7 @@ export function Flow({ catalog, initialIndex, zoom, readZoom, edgeTaps, onIndex,
       return { x: cx - r.left, y: cy - r.top };
     };
 
-    let down: { x: number; y: number; t: number; top: number } | null = null;
+    let down: { x: number; y: number; t: number; top: number; flung: boolean } | null = null;
     let lastTap: { t: number; x: number; y: number } | null = null;
     let tapTimer = 0;
     let pinch: { d0: number; z0: number; anchor: Anchor } | null = null;
@@ -328,7 +331,7 @@ export function Flow({ catalog, initialIndex, zoom, readZoom, edgeTaps, onIndex,
         down = null;
         return;
       }
-      down = { x: e.clientX, y: e.clientY, t: e.timeStamp, top: el.scrollTop };
+      down = { x: e.clientX, y: e.clientY, t: e.timeStamp, top: el.scrollTop, flung: performance.now() - lastMoved.current < 200 };
     };
 
     const onUp = (e: PointerEvent) => {
@@ -336,7 +339,7 @@ export function Flow({ catalog, initialIndex, zoom, readZoom, edgeTaps, onIndex,
       down = null;
       if (!d || pinching) return;
       const moved = Math.hypot(e.clientX - d.x, e.clientY - d.y) > 10 || Math.abs(el.scrollTop - d.top) > 3;
-      if (moved || e.timeStamp - d.t > 500) return;
+      if (moved || d.flung || e.timeStamp - d.t > 500) return;
       const p = local(e.clientX, e.clientY);
       if (lastTap && e.timeStamp - lastTap.t < DOUBLE_TAP_MS && Math.hypot(p.x - lastTap.x, p.y - lastTap.y) < 32) {
         window.clearTimeout(tapTimer);
