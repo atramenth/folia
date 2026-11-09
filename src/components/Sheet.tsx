@@ -5,11 +5,15 @@ interface Props {
   label: string;
   onClose: () => void;
   header?: ReactNode;
+  /** Fills most of the screen instead of fitting its content. */
+  tall?: boolean;
+  /** Stays in place under the title while the body scrolls. */
+  sticky?: ReactNode;
   children: ReactNode;
 }
 
 /** Bottom sheet: backdrop, Esc, drag down on the grabber to close. */
-export function Sheet({ label, onClose, header, children }: Props) {
+export function Sheet({ label, onClose, header, tall = false, sticky, children }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const startY = useRef<number | null>(null);
   const [dy, setDy] = useState(0);
@@ -30,7 +34,7 @@ export function Sheet({ label, onClose, header, children }: Props) {
       <div className="sheet-backdrop" onClick={onClose} />
       <div
         ref={ref}
-        className="sheet"
+        className={`sheet${tall ? " sheet--tall" : ""}`}
         role="dialog"
         aria-modal="true"
         aria-label={label}
@@ -50,6 +54,10 @@ export function Sheet({ label, onClose, header, children }: Props) {
             setDy(0);
             if (far) onClose();
           }}
+          onPointerCancel={() => {
+            startY.current = null;
+            setDy(0);
+          }}
         >
           <span />
         </div>
@@ -59,6 +67,7 @@ export function Sheet({ label, onClose, header, children }: Props) {
             <IconClose />
           </button>
         </div>
+        {sticky && <div className="sheet__sticky">{sticky}</div>}
         <div className="sheet__body">{children}</div>
       </div>
     </div>

@@ -2,18 +2,35 @@ import { Store } from "./Store.ts";
 
 export type ThemeChoice = "auto" | "light" | "dark";
 export type SlideSeconds = 3 | 5 | 8 | 12;
+/** Continuous scrolling, or one page at a time with a swipe. */
+export type ReadMode = "flow" | "pages";
+/** How the scanned pages are tinted: untouched, warmed like old paper, or inverted for the dark. */
+export type ToneChoice = "original" | "warm" | "night";
+
+export const ZOOM_MIN = 1;
+export const ZOOM_MAX = 4;
 
 export interface Settings {
   theme: ThemeChoice;
-  /** How long each page stays on screen during the slideshow. */
+  /** How long each page stays on screen during the slideshow or auto scroll. */
   seconds: SlideSeconds;
   /** Start again from the first page when the slideshow reaches the end. */
   loop: boolean;
+  mode: ReadMode;
+  /** Current width of a page in the continuous reader, as a multiple of the screen. Remembered. */
+  zoom: number;
+  /** The zoom a double tap goes to. Follows the last zoom the reader chose by hand. */
+  readZoom: number;
+  tone: ToneChoice;
+  /** Page brightness from 0.55 to 1. */
+  dim: number;
+  /** Tap the top or bottom (or left and right) edge of the page to move on. */
+  edgeTaps: boolean;
 }
 
 export class SettingsStore extends Store<Settings> {
   constructor() {
-    super("folia:settings", { theme: "auto", seconds: 5, loop: true });
+    super("folia:settings", { theme: "auto", seconds: 5, loop: true, mode: "flow", zoom: 1, readZoom: 1.8, tone: "original", dim: 1, edgeTaps: true });
     this.apply();
   }
 
@@ -30,14 +47,39 @@ export class SettingsStore extends Store<Settings> {
     this.patch({ loop });
   }
 
+  setMode(mode: ReadMode): void {
+    this.patch({ mode });
+  }
+
+  setZoom(zoom: number): void {
+    const z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(zoom * 100) / 100));
+    this.patch(z > 1.05 ? { zoom: z, readZoom: z } : { zoom: 1 });
+  }
+
+  setTone(tone: ToneChoice): void {
+    this.patch({ tone });
+    this.apply();
+  }
+
+  setDim(dim: number): void {
+    this.patch({ dim: Math.min(1, Math.max(0.55, dim)) });
+    this.apply();
+  }
+
+  setEdgeTaps(edgeTaps: boolean): void {
+    this.patch({ edgeTaps });
+  }
+
   /** Reflect settings onto <html> so CSS can react. */
   private apply(): void {
-    const { theme } = this.getSnapshot();
+    const { theme, tone, dim } = this.getSnapshot();
     const root = document.documentElement;
     if (theme === "auto") delete root.dataset.theme;
     else root.dataset.theme = theme;
+    root.dataset.tone = tone;
+    root.style.setProperty("--dim", String(dim));
     const dark = theme === "dark" || (theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#08090b" : "#e3e6e5");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#07080a" : "#dfe3e1");
   }
 }
 

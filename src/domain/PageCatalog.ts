@@ -1,4 +1,4 @@
-import type { Direction, SectionDef } from "./types.ts";
+import type { ChapterDef, Direction, SectionDef } from "./types.ts";
 
 /**
  * The ordered set of pages. Positions are zero based indexes into the set;
@@ -7,9 +7,13 @@ import type { Direction, SectionDef } from "./types.ts";
 export class PageCatalog {
   readonly sections: readonly SectionDef[];
   readonly pages: readonly number[];
+  /** Chapters that exist in this catalog, in page order. */
+  readonly chapters: readonly ChapterDef[];
   private readonly positions: ReadonlyMap<number, number>;
 
-  constructor(sections: readonly SectionDef[]) {
+  private readonly chaptersComplete: boolean;
+
+  constructor(sections: readonly SectionDef[], chapters: readonly ChapterDef[] = [], chaptersComplete = false) {
     const pages: number[] = [];
     let previousEnd = 0;
     for (const s of sections) {
@@ -24,6 +28,8 @@ export class PageCatalog {
     this.sections = sections;
     this.pages = pages;
     this.positions = new Map(pages.map((p, i) => [p, i]));
+    this.chaptersComplete = chaptersComplete;
+    this.chapters = chapters.filter((c) => this.positions.has(c.page)).sort((a, b) => a.page - b.page);
   }
 
   get total(): number {
@@ -87,6 +93,28 @@ export class PageCatalog {
   }
 
   pageCount(section: SectionDef): number {
-    return section.to - section.from + 1;
+    return this.pages.filter((p) => p >= section.from && p <= section.to).length;
+  }
+
+  /** The chapter that is open at this position, or null when none is known to be. */
+  chapterAt(index: number): ChapterDef | null {
+    const page = this.pageAt(index);
+    for (let k = this.chapters.length - 1; k >= 0; k--) {
+      const c = this.chapters[k];
+      if (c.page > page) continue;
+      const end = c.to ?? (this.chaptersComplete ? Infinity : c.page);
+      return page <= end ? c : null;
+    }
+    return null;
+  }
+
+  /** Positions where each chapter begins, for the ticks on the scrubber. */
+  chapterMarks(): number[] {
+    return this.chapters.map((c) => this.indexOf(c.page));
+  }
+
+  /** How far through the book a position is, from 0 to 1. */
+  fraction(index: number): number {
+    return this.lastIndex > 0 ? this.clamp(index) / this.lastIndex : 0;
   }
 }

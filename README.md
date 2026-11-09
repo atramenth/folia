@@ -57,34 +57,40 @@ The live site will be [atramenth.github.io/folia](https://atramenth.github.io/fo
 <a id="reading"></a>
 ## <img src="assets/icons/phone.svg" width="24" height="24" align="absmiddle" alt=""/> Reading
 
+Folia opens as one continuous column: the whole book scrolls like a single long page, with the printed number set on a hairline between pages. A second mode, Pages, turns one scan at a time with a swipe. Choose in **Display**.
+
 | Action | How |
 |---|---|
-| Turn a page | Swipe, use the previous and next controls, or press the arrow keys / Page Up and Page Down |
-| Zoom | Pinch, double tap, or use the mouse wheel; drag to pan |
-| Find a page | Open **Go to page**, enter its number, or jump by section |
-| Move through a long book | Drag the scrubber; slide upward while dragging to slow down for precise placement |
-| Bookmark a page | Press **B** or use the bookmark control |
-| Start a slideshow | Press **Space** or use the playback control; choose 3, 5, 8 or 12 seconds per page |
-| Reset zoom | Press **0** |
-| Full screen | Press **F** |
+| Read on | Scroll. The top or bottom edge of the screen moves almost one screen when tapped |
+| Hide or show the controls | Tap the middle of the page. They also tuck away as you scroll down and return as you scroll up |
+| Make the page larger | Pinch, double tap, or use the size slider in Display. The size is remembered from page to page |
+| Travel far | Drag the gilt line on the right edge. A large page number follows your thumb; slide left to slow down |
+| Jump anywhere | Open **Navigate** (the grid button): the Book Map, Contents, Marks, or type a page number |
+| Come back | After a long jump, a **Back to page** chip stays for a few seconds |
+| Bookmark | The bookmark button, or **B**. Add a short note in Navigate, Marks |
+| Night reading | Display, Page tone: Original, Warm or Night, plus a brightness control |
+| Auto scroll | Play. Choose 3, 5, 8 or 12 seconds per page. Touch the screen to stop |
+| Keys | Arrows move a page, Page Up and Page Down move a screen, space plays, G navigates, B bookmarks, F full screen, plus and minus resize, 0 fits to width |
 
-Each page has its own address, such as `#/p/812`. Folia restores the last reading position when you return.
+Each page has its own address, such as `#/p/812`. Folia restores the last reading position when you return. Turn a phone sideways for the widest page.
 
 ---
 
 <a id="features"></a>
 ## <img src="assets/icons/spark.svg" width="24" height="24" align="absmiddle" alt=""/> Features
 
-- Sliding page track with edge resistance and flick momentum
-- Pinch, double tap and wheel zoom, with drag-to-pan
-- Long-book scrubber designed for precise navigation across 1,200 pages
-- Go to page, section jumps, and 10-page or 100-page steps
-- Bookmarks and a saved reading position
-- Slideshow at 3, 5, 8 or 12 seconds per page, with a progress line
-- Hash deep links, for example `#/p/812`
-- Preloads the next two pages and previous page; respects the device’s Save Data setting
-- Slate, Paper and Auto themes
-- Reduced motion, keyboard controls and screen-reader labels
+- Continuous reader that only keeps the pages near the screen in the document, so 1,200 pages stay light
+- Pinch, double tap, ctrl wheel and slider zoom that keeps the point under your fingers in place, with a remembered size
+- Edge scrubber with section ticks, chapter ticks and bookmark dots, and a slow-down gesture for exact landing
+- Book Map: every page as a square in bands of a hundred, read pages filled, current page in gilt, bookmarks dotted
+- Contents with per section progress, and optional chapter titles
+- Reading progress: pages count as read after a moment in view; progress ring, pages today, day streak and a daily goal
+- Bookmarks with notes, and a way back after a long jump
+- Page tones (Original, Warm, Night) and brightness for reading at any hour
+- Pages mode with swipe, momentum, pinch, double tap and edge taps
+- Auto scroll or slideshow at 3, 5, 8 or 12 seconds per page
+- Hash deep links, saved position, Slate, Paper and Auto themes
+- Reduced motion, keyboard controls, screen reader labels
 
 ---
 
@@ -96,9 +102,9 @@ Each page has its own address, such as `#/p/812`. Folia restores the last readin
 Folia is built with React and TypeScript, using object-oriented services and controllers. Vite produces a static site for GitHub Pages; at runtime the only library dependency is React.
 
 - **Catalog:** `src/data/catalog.ts` defines the ordered sections and printed page ranges. The viewer, section labels, scrubber, jump sheet and page check share this source.
-- **Gestures:** `StageController` handles swipe, pinch, pan, double tap and wheel input. `ScrubModel` controls precision while scrubbing.
-- **Services:** Stores persist settings, progress and bookmarks. `PageImages` resolves image URLs and preloads nearby pages; `HashLocation` follows the current page; `Slideshow` advances on a timer.
-- **Interface:** `Stage`, `Slide`, `Scrubber`, `JumpSheet` and `SettingsSheet` make up the reader.
+- **Reader:** `Flow` is the continuous column (CSS variable layout, windowed pages, native scrolling, pinch and double tap). `Stage` and `StageController` handle Pages mode. `ScrubModel` controls precision while scrubbing.
+- **Services:** Stores persist settings, progress, bookmarks (with notes) and reading history (`ReadingStore`). `PageImages` resolves image URLs and preloads nearby pages; `HashLocation` follows the current page; `Slideshow` advances on a timer.
+- **Interface:** `Flow`, `Stage`, `Scrubber` (the edge rail), `JumpSheet` (Navigate, with `PageMap`), `SettingsSheet` (Display) and the welcome screen in `Hint` make up the reader.
 
 ---
 
@@ -127,7 +133,13 @@ npm run check:pages:strict
 
 ![Atramenth design system](assets/design-system.svg)
 
-Folia shares Atramenth’s restrained visual language: flat Slate and Paper themes, measured typography and quiet controls. Cormorant Garamond carries the editorial character; Jost keeps interface labels clear. The page scan remains the focus.
+Folia shares Atramenth’s restrained visual language: flat Slate and Paper themes, measured typography and quiet controls. Cormorant Garamond carries the editorial character; Jost keeps interface labels clear. One accent, gilt, marks only where you are, what you kept and how far you have come. The eight pointed star of two overlapping squares is the mark of the app. The page scan remains the focus.
+
+Styles are split by concern in `src/styles/`: `tokens.css`, `base.css`, `reader.css`, `chrome.css` and `sheets.css`, gathered by `app.css`.
+
+### Chapter titles
+
+`src/data/catalog.ts` has a `CHAPTERS` list. Add one line per chapter using the printed page numbers from the book's table of contents. Chapters appear in Navigate, Contents, as ticks on the edge scrubber and as the running title. Until the list is complete, give each entry a `to` page so no page is labelled with the wrong title; once `CHAPTERS_COMPLETE` is set to `true`, `to` can be left out.
 
 ---
 
@@ -182,13 +194,13 @@ folia/
 ├── public/pages/            Scanned book pages, named by printed page number
 ├── scripts/check-pages.ts   Reports missing and unexpected page images
 ├── src/
-│   ├── data/catalog.ts      Ordered sections and printed page ranges
+│   ├── data/catalog.ts      Sections, chapters and printed page ranges
 │   ├── domain/              PageCatalog and ScrubModel
 │   ├── gestures/            StageController
 │   ├── services/            Stores, page images, hash location and slideshow
 │   ├── hooks/               useStore and useViewer
-│   ├── components/          Stage, Slide, Scrubber and settings sheets
-│   └── styles/app.css       Design tokens, layout and themes
+│   ├── components/          Flow, Stage, Scrubber, Navigate, Display and welcome
+│   └── styles/              Tokens, base, reader, chrome and sheets stylesheets
 ├── .github/workflows/       GitHub Pages deployment
 ├── index.html
 ├── package.json

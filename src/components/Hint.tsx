@@ -1,19 +1,33 @@
-import type { ReactNode } from "react";
-import { IconPinch, IconScrub, IconSwipe, IconTap } from "./Icons.tsx";
+import { useEffect, useRef, type ReactNode } from "react";
+import { IconPinch, IconScrub, IconStar, IconSwipe, IconTap } from "./Icons.tsx";
 
 const ROWS: { icon: ReactNode; title: string; text: string }[] = [
-  { icon: <IconSwipe />, title: "Swipe", text: "Left or right to turn the page." },
-  { icon: <IconPinch />, title: "Pinch or double tap", text: "To zoom in. Drag to move around." },
-  { icon: <IconTap />, title: "Tap once", text: "To hide or show the controls." },
-  { icon: <IconScrub />, title: "Drag the bar", text: "To travel far. Slide up to slow down." },
+  { icon: <IconSwipe />, title: "Scroll", text: "The whole book is one long column. Just keep reading." },
+  { icon: <IconPinch />, title: "Pinch or double tap", text: "Make the page larger. Your size is remembered." },
+  { icon: <IconTap />, title: "Tap the middle", text: "Hides or shows the controls. Top and bottom edges move on." },
+  { icon: <IconScrub />, title: "Drag the edge line", text: "Travel far in a moment, or open the map to jump anywhere." },
 ];
 
-/** First run guide. Any tap dismisses it. */
-export function Hint({ onClose }: { onClose: () => void }) {
+/** First run welcome. */
+export function Hint({ onClose, total }: { onClose: () => void; total: number }) {
+  const button = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    button.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
-    <div className="hint" role="dialog" aria-modal="true" aria-label="How to use Folia" onClick={onClose}>
-      <div className="hint__card">
-        <h2>Folia</h2>
+    <div className="welcome" role="dialog" aria-modal="true" aria-label="Welcome to Folia">
+      <div className="welcome__inner">
+        <div className="welcome__mark" aria-hidden="true">
+          <IconStar size={72} />
+        </div>
+        <h1>Folia</h1>
+        <p className="welcome__lede">
+          {total.toLocaleString("en-US")} pages, read as they were printed. <em>Quietly.</em>
+        </p>
         <ul>
           {ROWS.map((r) => (
             <li key={r.title}>
@@ -25,8 +39,8 @@ export function Hint({ onClose }: { onClose: () => void }) {
             </li>
           ))}
         </ul>
-        <button type="button" className="btn btn--primary" onClick={onClose}>
-          Start reading
+        <button ref={button} type="button" className="btn btn--primary btn--wide" onClick={onClose}>
+          Begin reading
         </button>
       </div>
     </div>

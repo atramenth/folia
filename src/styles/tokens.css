@@ -1,0 +1,81 @@
+/* Folia design tokens.
+   Slate (dark): bone on near black, never pure white on pure black.
+   Paper (light): cool ink on soft grey green paper, never #fff.
+   One accent, gilt, the colour of illuminated manuscript borders. It marks only what matters:
+   where you are, what you kept, how far you have come. Surfaces stay flat. */
+
+:root {
+  color-scheme: dark;
+  --bg: #07080a;
+  --paper: #101316;
+  --raise: #171b1f;
+  --surface: rgba(231, 226, 213, 0.05);
+  --border: rgba(231, 226, 213, 0.1);
+  --border-strong: rgba(231, 226, 213, 0.22);
+  --text: #e7e2d5;
+  --text-2: #aab0b3;
+  --text-3: #8a9297;
+  --gilt: #cfae6c;
+  --gilt-bright: #e2c488;
+  --gilt-dim: rgba(207, 174, 108, 0.16);
+  --gilt-ink: #17110a;
+  --scrim: rgba(2, 3, 4, 0.66);
+  --lift: 0 14px 34px -14px rgba(0, 0, 0, 0.7);
+
+  --font-display: "Cormorant Garamond", "EB Garamond", Georgia, serif;
+  --font-body: "Jost", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-settle: cubic-bezier(0.16, 0.4, 0.15, 1);
+
+  /* Page brightness (set from settings) and the tint put on the scans. */
+  --dim: 1;
+  --scan-filter: brightness(var(--dim));
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #dfe3e1;
+  --paper: #eceeed;
+  --raise: #e3e6e5;
+  --surface: rgba(23, 27, 30, 0.05);
+  --border: rgba(23, 27, 30, 0.13);
+  --border-strong: rgba(23, 27, 30, 0.3);
+  --text: #171b1e;
+  --text-2: #434d53;
+  --text-3: #586369;
+  --gilt: #7d6226;
+  --gilt-bright: #5f4a1a;
+  --gilt-dim: rgba(125, 98, 38, 0.14);
+  --gilt-ink: #fbf6e8;
+  --scrim: rgba(23, 27, 30, 0.4);
+  --lift: 0 14px 34px -16px rgba(23, 27, 30, 0.4);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
+    --bg: #dfe3e1;
+    --paper: #eceeed;
+    --raise: #e3e6e5;
+    --surface: rgba(23, 27, 30, 0.05);
+    --border: rgba(23, 27, 30, 0.13);
+    --border-strong: rgba(23, 27, 30, 0.3);
+    --text: #171b1e;
+    --text-2: #434d53;
+    --text-3: #586369;
+    --gilt: #7d6226;
+    --gilt-bright: #5f4a1a;
+    --gilt-dim: rgba(125, 98, 38, 0.14);
+    --gilt-ink: #fbf6e8;
+    --scrim: rgba(23, 27, 30, 0.4);
+    --lift: 0 14px 34px -16px rgba(23, 27, 30, 0.4);
+  }
+}
+
+:root[data-tone="warm"] {
+  --scan-filter: sepia(0.3) saturate(0.92) brightness(calc(var(--dim) * 0.97));
+}
+:root[data-tone="night"] {
+  --scan-filter: invert(0.9) hue-rotate(180deg) brightness(calc(var(--dim) * 0.92)) contrast(0.94);
+}

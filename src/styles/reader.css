@@ -1,0 +1,128 @@
+/* The reading surface: the continuous column and the one page at a time stage. */
+
+.viewer {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg);
+  --top-h: 3.6rem;
+  --frac: 0;
+}
+
+/* ---------- Continuous reader ---------- */
+.flow {
+  --fw: 100vw;
+  --fh: 142vw;
+  --pitch: 150vw;
+  --pad: 64px;
+  --n: 1;
+  --g: 10px;
+  --tail: 100px;
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-x pan-y;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  outline: 0;
+}
+.flow::-webkit-scrollbar { display: none; }
+.flow__spacer {
+  position: relative;
+  width: max(100%, calc(var(--fw) + 2 * var(--g)));
+  height: calc(var(--pad) + var(--n) * var(--pitch) + var(--tail));
+}
+
+.fp {
+  position: absolute;
+  top: calc(var(--pad) + var(--i) * var(--pitch));
+  left: 50%;
+  width: var(--fw);
+  height: var(--fh);
+  margin-left: calc(var(--fw) / -2);
+  background: var(--paper);
+  box-shadow: 0 0 0 1px var(--border), 0 22px 44px -28px rgba(0, 0, 0, 0.8);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.fp__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: var(--scan-filter);
+  opacity: 0;
+  transition: opacity 0.35s var(--ease-out);
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+.fp__img.is-ready { opacity: 1; }
+.fp__img.is-instant { transition: none; }
+
+/* The printed number between two pages, set on a hairline. */
+.fp__label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1.55rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.22em;
+  color: var(--text-3);
+  pointer-events: none;
+}
+.fp__label::before, .fp__label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+.fp__state { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 0.6rem; padding: 2rem; text-align: center; color: var(--text-2); font-size: 0.9rem; }
+.fp__state strong { font-family: var(--font-display); font-weight: 500; font-size: 1.5rem; color: var(--text); }
+.fp__num { font-family: var(--font-mono); font-size: 0.85rem; letter-spacing: 0.12em; color: var(--text-3); }
+.fp__hint { color: var(--text-3); }
+
+/* ---------- One page at a time ---------- */
+.stage { position: absolute; inset: 0; overflow: hidden; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.stage:active { cursor: grabbing; }
+.track { position: absolute; inset: 0; will-change: transform; }
+.slide { position: absolute; inset: 0; }
+.slide__zoom {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: calc(var(--pad-top) + 0.2rem) 0.5rem calc(var(--pad-bottom) + 0.2rem);
+  transform-origin: 50% 50%;
+  transition: padding 0.35s var(--ease-settle);
+  will-change: transform;
+}
+.viewer[data-chrome="on"] { --pad-top: calc(var(--top-h) + env(safe-area-inset-top)); --pad-bottom: calc(5.6rem + env(safe-area-inset-bottom)); }
+.viewer[data-chrome="off"] { --pad-top: calc(0.4rem + env(safe-area-inset-top)); --pad-bottom: calc(0.4rem + env(safe-area-inset-bottom)); }
+.slide__img {
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px var(--border), 0 22px 44px -28px rgba(0, 0, 0, 0.8);
+  filter: var(--scan-filter);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out);
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+.slide__img.is-ready { opacity: 1; }
+.slide__state { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 0.5rem; padding: 2rem; text-align: center; color: var(--text-2); font-size: 0.9rem; }
+.slide__state strong { font-family: var(--font-display); font-weight: 500; font-size: 1.5rem; color: var(--text); }
+.slide__state > span:not(.spinner) { font-family: var(--font-mono); font-size: 0.85rem; letter-spacing: 0.12em; color: var(--text-3); }
+.slide__state .btn { margin-top: 0.6rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fp__img, .slide__img, .slide__zoom { transition: none; }
+}
