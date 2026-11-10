@@ -8,15 +8,29 @@ export interface SectionDef {
   to: number;
 }
 
-/** A named place inside the book, listed in Contents and shown as a tick on the scrubber. */
-export interface ChapterDef {
-  title: string;
-  /** Short line under the title, such as "Sūrah 1 · Part 1". */
-  sub?: string;
-  /** Printed page number where it starts. */
+export type Place = "Makkah" | "Madinah";
+
+/** One of the 114 sūrahs. */
+export interface SurahDef {
+  number: number;
+  name: string;
+  place: Place;
+  /** Printed page on which it begins. */
   page: number;
-  /** Last printed page of the chapter. Only needed while the chapter list is incomplete. */
-  to?: number;
+  /** Number of āyāt. */
+  ayat: number;
+}
+
+/** One of the 30 parts. */
+export interface PartDef {
+  part: number;
+  /** Printed page on which it begins. */
+  page: number;
+  /** The sūrah and āyah it begins at. */
+  surah: number;
+  ayah: number;
+  /** The page was worked out from the position of the āyah rather than read from the text, so it may be a page off. */
+  about?: boolean;
 }
 
 /** Which way a page turn goes: 1 is forward, -1 is back. */

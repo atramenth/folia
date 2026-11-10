@@ -1,32 +1,173 @@
-import type { ChapterDef, SectionDef } from "../domain/types.ts";
+import type { PartDef, SectionDef, SurahDef } from "../domain/types.ts";
 
 /**
- * The page images, by printed page number. Every page N must exist as
- * public/pages/N.avif. Pages 1197 and 1198 are intentionally skipped.
+ * The book as printed. Pages are printed page numbers; every page N must exist as public/pages/N.avif.
+ * Pages 1197 and 1198 are intentionally skipped.
  */
 export const SECTIONS: readonly SectionDef[] = [
-  { id: "book", label: "Book", from: 1, to: 1196 },
+  { id: "quran", label: "Qur'ān", from: 1, to: 1196 },
   { id: "introduction", label: "Introduction", from: 1199, to: 1220 },
   { id: "index", label: "Index", from: 1221, to: 1223 },
 ];
 
 /**
- * Named places inside the book. They appear in Contents, as ticks on the page scrubber and as the
- * running title at the top of the reader. Add one line per entry, using the printed page number
- * from the book's own table of contents. Entries may be in any order; pages that are not in the
- * catalog are ignored.
+ * The 114 sūrahs: name, place of revelation, first printed page and number of āyāt. Taken from the book's
+ * "Table of Names of the Holy Qur'ān's Sūrahs", as transcribed for atramenth.github.io, the main site.
  */
-export const CHAPTERS: readonly ChapterDef[] = [
-  { title: "Fātiha", sub: "Sūrah 1 · Part 1", page: 1, to: 3 },
+export const SURAHS: readonly SurahDef[] = [
+  { number: 1, name: "Al-Fātihatu'l Kitāb", place: "Makkah", page: 1, ayat: 7 },
+  { number: 2, name: "Al-Baqarah", place: "Madinah", page: 4, ayat: 286 },
+  { number: 3, name: "'Al-e-Imrān", place: "Madinah", page: 85, ayat: 200 },
+  { number: 4, name: "An-Nissāa", place: "Madinah", page: 133, ayat: 176 },
+  { number: 5, name: "Al-Mā'idah", place: "Madinah", page: 180, ayat: 120 },
+  { number: 6, name: "Al-An'ām", place: "Makkah", page: 215, ayat: 165 },
+  { number: 7, name: "Al-A'rāf", place: "Makkah", page: 256, ayat: 206 },
+  { number: 8, name: "Al-Anfāl", place: "Madinah", page: 303, ayat: 75 },
+  { number: 9, name: "At-Taubah", place: "Madinah", page: 322, ayat: 129 },
+  { number: 10, name: "Yūnus", place: "Makkah", page: 355, ayat: 109 },
+  { number: 11, name: "Hūd", place: "Makkah", page: 378, ayat: 123 },
+  { number: 12, name: "Yūsuf", place: "Makkah", page: 403, ayat: 111 },
+  { number: 13, name: "Ar-Ra'd", place: "Madinah", page: 426, ayat: 43 },
+  { number: 14, name: "Ibrāhīm", place: "Makkah", page: 438, ayat: 52 },
+  { number: 15, name: "Al-Hijr", place: "Makkah", page: 449, ayat: 99 },
+  { number: 16, name: "An-Nahl", place: "Makkah", page: 462, ayat: 128 },
+  { number: 17, name: "Al-Isrāa", place: "Makkah", page: 488, ayat: 111 },
+  { number: 18, name: "Al-Kahf", place: "Makkah", page: 511, ayat: 110 },
+  { number: 19, name: "Maryam", place: "Makkah", page: 536, ayat: 98 },
+  { number: 20, name: "Tā.Hā", place: "Makkah", page: 549, ayat: 135 },
+  { number: 21, name: "Al-Anbiyāa", place: "Makkah", page: 571, ayat: 112 },
+  { number: 22, name: "Al-Hajj", place: "Madinah", page: 591, ayat: 78 },
+  { number: 23, name: "Al-Mu'minūn", place: "Makkah", page: 609, ayat: 118 },
+  { number: 24, name: "An-Nūr", place: "Madinah", page: 627, ayat: 64 },
+  { number: 25, name: "Al-Forqān", place: "Makkah", page: 643, ayat: 77 },
+  { number: 26, name: "Ash-Shu'arāa", place: "Makkah", page: 657, ayat: 227 },
+  { number: 27, name: "An-Naml", place: "Makkah", page: 682, ayat: 93 },
+  { number: 28, name: "Al-Qassas", place: "Makkah", page: 700, ayat: 88 },
+  { number: 29, name: "Al-Ankabūt", place: "Makkah", page: 719, ayat: 69 },
+  { number: 30, name: "Ar-Rūm", place: "Makkah", page: 734, ayat: 60 },
+  { number: 31, name: "Luqmān", place: "Makkah", page: 747, ayat: 34 },
+  { number: 32, name: "As-Sajdah", place: "Makkah", page: 755, ayat: 30 },
+  { number: 33, name: "Al-Ahzāb", place: "Madinah", page: 761, ayat: 73 },
+  { number: 34, name: "Saba", place: "Makkah", page: 779, ayat: 54 },
+  { number: 35, name: "Al-Fātir", place: "Makkah", page: 792, ayat: 45 },
+  { number: 36, name: "Yā. Sīn", place: "Makkah", page: 803, ayat: 83 },
+  { number: 37, name: "As-Sāffāt", place: "Makkah", page: 815, ayat: 182 },
+  { number: 38, name: "Sād", place: "Makkah", page: 834, ayat: 88 },
+  { number: 39, name: "Az-Zumar", place: "Makkah", page: 847, ayat: 75 },
+  { number: 40, name: "Ghāfir", place: "Makkah", page: 865, ayat: 85 },
+  { number: 41, name: "Fussilat", place: "Makkah", page: 883, ayat: 54 },
+  { number: 42, name: "Ash-Shūrā", place: "Makkah", page: 895, ayat: 53 },
+  { number: 43, name: "Az-Zukhruf", place: "Makkah", page: 907, ayat: 89 },
+  { number: 44, name: "Ad-Dukhān", place: "Makkah", page: 921, ayat: 59 },
+  { number: 45, name: "Al-Jāthiyah", place: "Makkah", page: 929, ayat: 37 },
+  { number: 46, name: "Al-Ahqāf", place: "Makkah", page: 937, ayat: 35 },
+  { number: 47, name: "Mohammad", place: "Madinah", page: 946, ayat: 38 },
+  { number: 48, name: "Al-Fath", place: "Madinah", page: 954, ayat: 29 },
+  { number: 49, name: "Al-Hujurāt", place: "Madinah", page: 962, ayat: 18 },
+  { number: 50, name: "Qāf", place: "Makkah", page: 967, ayat: 45 },
+  { number: 51, name: "Az-Zāriyāt", place: "Makkah", page: 974, ayat: 60 },
+  { number: 52, name: "At-Tūr", place: "Makkah", page: 982, ayat: 49 },
+  { number: 53, name: "An-Najm", place: "Makkah", page: 988, ayat: 62 },
+  { number: 54, name: "Al-Qamar", place: "Makkah", page: 995, ayat: 55 },
+  { number: 55, name: "Ar-Rahmān", place: "Madinah", page: 1003, ayat: 78 },
+  { number: 56, name: "Al-Waqi'ah", place: "Makkah", page: 1011, ayat: 96 },
+  { number: 57, name: "Al-Hadīd", place: "Madinah", page: 1021, ayat: 29 },
+  { number: 58, name: "Al-Mujādilah", place: "Madinah", page: 1029, ayat: 22 },
+  { number: 59, name: "Al-Hashr", place: "Madinah", page: 1035, ayat: 24 },
+  { number: 60, name: "Al-Mumtahanah", place: "Madinah", page: 1042, ayat: 13 },
+  { number: 61, name: "As-Saff", place: "Madinah", page: 1047, ayat: 14 },
+  { number: 62, name: "Al-Jumu'ah", place: "Madinah", page: 1050, ayat: 11 },
+  { number: 63, name: "Al-Munāfiqūn", place: "Madinah", page: 1053, ayat: 11 },
+  { number: 64, name: "At-Taghābun", place: "Madinah", page: 1056, ayat: 18 },
+  { number: 65, name: "At-Talāq", place: "Madinah", page: 1060, ayat: 12 },
+  { number: 66, name: "At-Tahrīm", place: "Madinah", page: 1064, ayat: 12 },
+  { number: 67, name: "Al-Mulk", place: "Makkah", page: 1069, ayat: 30 },
+  { number: 68, name: "Al-Qalam", place: "Makkah", page: 1074, ayat: 52 },
+  { number: 69, name: "Al-Hāqqah", place: "Makkah", page: 1081, ayat: 52 },
+  { number: 70, name: "Al-Ma'ārij", place: "Makkah", page: 1087, ayat: 44 },
+  { number: 71, name: "Nūh", place: "Makkah", page: 1091, ayat: 28 },
+  { number: 72, name: "Al-Jinn", place: "Makkah", page: 1095, ayat: 28 },
+  { number: 73, name: "Al-Muzzammil", place: "Makkah", page: 1100, ayat: 20 },
+  { number: 74, name: "Al-Muddassir", place: "Makkah", page: 1104, ayat: 56 },
+  { number: 75, name: "Al-Qiyāmat", place: "Makkah", page: 1110, ayat: 40 },
+  { number: 76, name: "Al-Insān", place: "Madinah", page: 1114, ayat: 31 },
+  { number: 77, name: "Al-Mursalāt", place: "Makkah", page: 1119, ayat: 50 },
+  { number: 78, name: "An-Naba", place: "Makkah", page: 1124, ayat: 40 },
+  { number: 79, name: "An-Nāzi'āt", place: "Makkah", page: 1128, ayat: 46 },
+  { number: 80, name: "Abasa", place: "Makkah", page: 1134, ayat: 42 },
+  { number: 81, name: "At-Takwīr", place: "Makkah", page: 1138, ayat: 29 },
+  { number: 82, name: "Al-Infitār", place: "Makkah", page: 1141, ayat: 19 },
+  { number: 83, name: "Al-Mutaffifīn", place: "Makkah", page: 1143, ayat: 36 },
+  { number: 84, name: "Al-Insheqāq", place: "Makkah", page: 1147, ayat: 25 },
+  { number: 85, name: "Al-Burūj", place: "Makkah", page: 1150, ayat: 22 },
+  { number: 86, name: "At-Tāriq", place: "Makkah", page: 1153, ayat: 17 },
+  { number: 87, name: "Al-A'lā", place: "Makkah", page: 1155, ayat: 19 },
+  { number: 88, name: "Al-Ghāshiyah", place: "Makkah", page: 1157, ayat: 26 },
+  { number: 89, name: "Al-Fajr", place: "Makkah", page: 1160, ayat: 30 },
+  { number: 90, name: "Al-Balad", place: "Makkah", page: 1163, ayat: 20 },
+  { number: 91, name: "Ash-Shams", place: "Makkah", page: 1166, ayat: 15 },
+  { number: 92, name: "Al-Lail", place: "Makkah", page: 1168, ayat: 21 },
+  { number: 93, name: "Az-Zohā", place: "Makkah", page: 1170, ayat: 11 },
+  { number: 94, name: "Al-Inshirāh", place: "Makkah", page: 1172, ayat: 8 },
+  { number: 95, name: "At-Tīn", place: "Makkah", page: 1173, ayat: 8 },
+  { number: 96, name: "Al-'Alaq", place: "Makkah", page: 1174, ayat: 19 },
+  { number: 97, name: "Al-Qadr", place: "Makkah", page: 1176, ayat: 5 },
+  { number: 98, name: "Al-Bayyinah", place: "Madinah", page: 1177, ayat: 8 },
+  { number: 99, name: "Az-Zilzāl", place: "Madinah", page: 1179, ayat: 8 },
+  { number: 100, name: "Al-'Ādiyāt", place: "Makkah", page: 1181, ayat: 11 },
+  { number: 101, name: "Al-Qāri'ah", place: "Makkah", page: 1182, ayat: 11 },
+  { number: 102, name: "At-Takāthur", place: "Makkah", page: 1184, ayat: 8 },
+  { number: 103, name: "Al-'Asr", place: "Makkah", page: 1185, ayat: 3 },
+  { number: 104, name: "Al-Humazah", place: "Makkah", page: 1186, ayat: 9 },
+  { number: 105, name: "Al-Fīl", place: "Makkah", page: 1187, ayat: 5 },
+  { number: 106, name: "Al-Quraish", place: "Makkah", page: 1188, ayat: 4 },
+  { number: 107, name: "Al-Mā'ūn", place: "Makkah", page: 1189, ayat: 7 },
+  { number: 108, name: "Al-Kauthar", place: "Makkah", page: 1190, ayat: 3 },
+  { number: 109, name: "Al-Kāfirūn", place: "Makkah", page: 1191, ayat: 6 },
+  { number: 110, name: "An-Nasr", place: "Madinah", page: 1192, ayat: 3 },
+  { number: 111, name: "Al-Massad", place: "Makkah", page: 1193, ayat: 5 },
+  { number: 112, name: "Al-Ikhlās", place: "Makkah", page: 1194, ayat: 4 },
+  { number: 113, name: "Al-Falaq", place: "Makkah", page: 1195, ayat: 5 },
+  { number: 114, name: "An-Nās", place: "Makkah", page: 1196, ayat: 6 },
 ];
 
 /**
- * Set to true once CHAPTERS lists every chapter of the book. Until then a chapter is only named at
- * the top of the reader on the pages from its start to its "to" page, so a half finished list never
- * labels a page with the wrong title. When this is true, "to" can be left out: a chapter runs until
- * the next one begins.
+ * The 30 parts: the printed page on which each begins, and the (sūrah, āyah) it begins at. The starts come from
+ * the main site. Pages are exact where that site has the sūrah text; the five marked "about" were worked out from
+ * the position of the āyah inside its sūrah and can be off by a page. Correct them here if the book differs.
  */
-export const CHAPTERS_COMPLETE = false;
+export const PARTS: readonly PartDef[] = [
+  { part: 1, page: 1, surah: 1, ayah: 1 },
+  { part: 2, page: 38, surah: 2, ayah: 142 },
+  { part: 3, page: 72, surah: 2, ayah: 253 },
+  { part: 4, page: 106, surah: 3, ayah: 93 },
+  { part: 5, page: 140, surah: 4, ayah: 24 },
+  { part: 6, page: 172, surah: 4, ayah: 148 },
+  { part: 7, page: 204, surah: 5, ayah: 82 },
+  { part: 8, page: 241, surah: 6, ayah: 111 },
+  { part: 9, page: 276, surah: 7, ayah: 88 },
+  { part: 10, page: 312, surah: 8, ayah: 41 },
+  { part: 11, page: 345, surah: 9, ayah: 93 },
+  { part: 12, page: 379, surah: 11, ayah: 6, about: true },
+  { part: 13, page: 414, surah: 12, ayah: 53, about: true },
+  { part: 14, page: 449, surah: 15, ayah: 1 },
+  { part: 15, page: 488, surah: 17, ayah: 1 },
+  { part: 16, page: 528, surah: 18, ayah: 75, about: true },
+  { part: 17, page: 571, surah: 21, ayah: 1 },
+  { part: 18, page: 609, surah: 23, ayah: 1 },
+  { part: 19, page: 647, surah: 25, ayah: 21, about: true },
+  { part: 20, page: 693, surah: 27, ayah: 56, about: true },
+  { part: 21, page: 728, surah: 29, ayah: 46 },
+  { part: 22, page: 768, surah: 33, ayah: 31 },
+  { part: 23, page: 807, surah: 36, ayah: 28 },
+  { part: 24, page: 855, surah: 39, ayah: 32 },
+  { part: 25, page: 892, surah: 41, ayah: 47 },
+  { part: 26, page: 937, surah: 46, ayah: 1 },
+  { part: 27, page: 977, surah: 51, ayah: 31 },
+  { part: 28, page: 1029, surah: 58, ayah: 1 },
+  { part: 29, page: 1069, surah: 67, ayah: 1 },
+  { part: 30, page: 1124, surah: 78, ayah: 1 },
+];
 
 /** Folder inside public/ that holds the images, and their file extension. */
 export const PAGES_DIR = "pages";

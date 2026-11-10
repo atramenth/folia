@@ -1,13 +1,14 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type { PageCatalog } from "../domain/PageCatalog.ts";
+import type { Place, SurahDef } from "../domain/types.ts";
 import { useStore } from "../hooks/useStore.ts";
 import { bookmarks } from "../services/BookmarkStore.ts";
 import { reading } from "../services/library.ts";
-import { IconList, IconMap, IconTrash, IconStar } from "./Icons.tsx";
+import { IconList, IconMap, IconPages, IconSearch, IconStar, IconTrash } from "./Icons.tsx";
 import { PageMap } from "./PageMap.tsx";
 import { Sheet } from "./Sheet.tsx";
 
-export type NavTab = "map" | "contents" | "marks";
+export type NavTab = "surahs" | "parts" | "map" | "marks";
 
 interface Props {
   catalog: PageCatalog;
@@ -18,6 +19,14 @@ interface Props {
 }
 
 const fmt = (n: number) => n.toLocaleString("en-US");
+
+/** Lower case, no accents or punctuation, so "fatiha" finds "Al-Fātihatu'l Kitāb" and "imran" finds "'Al-e-Imrān". */
+const norm = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
 
 /** A small ring showing how much of the book has been read. */
 function Ring({ value }: { value: number }) {
@@ -34,55 +43,152 @@ function Ring({ value }: { value: number }) {
   );
 }
 
+type Hit = { kind: "page"; page: number; note?: string } | { kind: "surah"; surah: SurahDef } | { kind: "part"; part: number } | { kind: "section"; id: string };
+
 /**
- * Navigate: everything for getting around a long book in one sheet. A number box, the page map,
- * Contents, and your bookmarks with their notes, above a short summary of how far you have read.
+ * The index of the book. One box finds a sūrah by name or number, or a page by number; below it the
+ * sūrahs, the 30 parts, the map of every page, and your bookmarks.
  */
-export function JumpSheet({ catalog, index, onGo, onClose, initialTab = "map" }: Props) {
+export function JumpSheet({ catalog, index, onGo, onClose, initialTab = "surahs" }: Props) {
   const marks = useStore(bookmarks);
   const r = useStore(reading);
   const [tab, setTab] = useState<NavTab>(initialTab);
   const [text, setText] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [place, setPlace] = useState<Place | "all">("all");
+  const body = useRef<HTMLDivElement>(null);
 
   const go = (i: number) => {
     onGo(i);
     onClose();
   };
+  const goPage = (page: number) => go(catalog.nearestIndex(page));
 
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    const n = Number(text.trim());
-    if (!Number.isInteger(n) || text.trim() === "" || n < catalog.firstPage || n > catalog.lastPage) {
-      setError(`Enter a page from ${catalog.firstPage} to ${catalog.lastPage}.`);
-      return;
+  const here = catalog.surahAt(index);
+  const hereSection = catalog.sectionAt(index);
+  const herePart = catalog.partAt(index);
+
+  // How much of each sūrah has been read. `r` changes whenever a page is marked read.
+  const readShare = useMemo(() => {
+    const out = new Map<number, number>();
+    for (const x of catalog.surahs) {
+      const pages = catalog.pages.filter((p) => p >= x.page && p <= catalog.surahEnd(x));
+      out.set(x.number, pages.length ? reading.countRead(pages) / pages.length : 0);
     }
-    if (!catalog.has(n)) {
-      const next = catalog.pageAt(catalog.nearestIndex(n));
-      setError(`Page ${n} is not in this set. The next page is ${next}.`);
-      setText(String(next));
-      return;
-    }
-    go(catalog.indexOf(n));
-  };
+    return out;
+  }, [catalog, r]);
 
   const done = useMemo(() => reading.countRead(catalog.pages), [catalog, r]);
   const share = done / catalog.total;
   const today = r.today.pages.length;
   const streak = reading.streak;
   const goalPct = Math.min(100, Math.round((today / Math.max(1, r.goal)) * 100));
-  const section = catalog.sectionAt(index);
-  const chapter = catalog.chapterAt(index);
+
+  // Search: a page number, a sūrah number or name, "part 5", or the Introduction and Index.
+  const hits = useMemo<Hit[] | null>(() => {
+    const q = text.trim();
+    if (!q) return null;
+    const out: Hit[] = [];
+    const q2 = norm(q);
+    const partQuery = /^(?:part|juz|para)\s*(\d{1,2})$/i.exec(q);
+    if (partQuery) {
+      const n = Number(partQuery[1]);
+      if (n >= 1 && n <= 30) out.push({ kind: "part", part: n });
+    }
+    if (/^\d+$/.test(q)) {
+      const n = Number(q);
+      if (n >= catalog.firstPage && n <= catalog.lastPage) {
+        const page = catalog.pageAt(catalog.nearestIndex(n));
+        out.push({ kind: "page", page, note: page === n ? undefined : `Page ${n} is not in the book. The next page is ${page}.` });
+      }
+      const x = catalog.surahs.find((s) => s.number === n);
+      if (x) out.push({ kind: "surah", surah: x });
+    } else if (q2) {
+      for (const x of catalog.surahs) if (norm(x.name).includes(q2)) out.push({ kind: "surah", surah: x });
+      for (const s of catalog.sections.slice(1)) if (norm(s.label).includes(q2)) out.push({ kind: "section", id: s.id });
+    }
+    return out;
+  }, [text, catalog]);
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    const first = hits?.[0];
+    if (!first) return;
+    if (first.kind === "page") goPage(first.page);
+    else if (first.kind === "surah") goPage(first.surah.page);
+    else if (first.kind === "part") goPage(catalog.parts[first.part - 1].page);
+    else goPage(catalog.sections.find((s) => s.id === first.id)!.from);
+  };
+
+  // Open on the sūrah or part being read.
+  useEffect(() => {
+    if (text) return;
+    body.current?.querySelector<HTMLElement>('[aria-current="true"], [aria-current="page"]')?.scrollIntoView({ block: "center" });
+  }, [tab, text]);
+
+  const places = useMemo(() => {
+    const count = (p: Place) => catalog.surahs.filter((s) => s.place === p).length;
+    return { Makkah: count("Makkah"), Madinah: count("Madinah") };
+  }, [catalog]);
+
+  const partsOf = (x: SurahDef) => {
+    const { first, last } = catalog.partsOfSurah(x);
+    return first === last ? `Part ${first}` : `Parts ${first} to ${last}`;
+  };
+
+  const surahRow = (x: SurahDef) => {
+    const pct = Math.round((readShare.get(x.number) ?? 0) * 100);
+    const on = here?.number === x.number;
+    return (
+      <li key={x.number}>
+        <button type="button" className={`srow${on ? " is-on" : ""}`} aria-current={on ? "true" : undefined} onClick={() => goPage(x.page)}>
+          <span className="srow__n">{x.number}</span>
+          <span className="srow__main">
+            <strong>{x.name}</strong>
+            <small>
+              {x.place} <span aria-hidden="true">·</span> {x.ayat} āyāt <span aria-hidden="true">·</span> {partsOf(x)}
+            </small>
+          </span>
+          <span className="srow__page">
+            <small>page</small>
+            {x.page}
+          </span>
+          {pct > 0 && <i className="srow__bar" style={{ width: `${pct}%` }} />}
+        </button>
+      </li>
+    );
+  };
+
+  const sectionRow = (id: string) => {
+    const s = catalog.sections.find((x) => x.id === id)!;
+    const on = hereSection.id === s.id;
+    return (
+      <li key={s.id}>
+        <button type="button" className={`srow srow--section${on ? " is-on" : ""}`} aria-current={on ? "true" : undefined} onClick={() => goPage(s.from)}>
+          <span className="srow__n" aria-hidden="true">
+            <IconStar size={18} />
+          </span>
+          <span className="srow__main">
+            <strong>{s.label}</strong>
+            <small>{fmt(catalog.pageCount(s))} pages</small>
+          </span>
+          <span className="srow__page">
+            <small>page</small>
+            {s.from}
+          </span>
+        </button>
+      </li>
+    );
+  };
 
   const sticky = (
     <>
-      <div className="stats">
+      <div className="stats stats--compact">
         <Ring value={share} />
         <div className="stats__text">
           <strong>
             Page {catalog.pageAt(index)} <span>of {fmt(catalog.lastPage)}</span>
           </strong>
-          <small>{chapter ? `${chapter.title}, ${section.label}` : section.label}</small>
+          <small>{here ? `${here.name}${herePart ? `, part ${herePart}` : ""}` : hereSection.label}</small>
           <div className="goal" role="img" aria-label={`${today} of ${r.goal} pages today`}>
             <i style={{ width: `${goalPct}%` }} />
           </div>
@@ -92,82 +198,156 @@ export function JumpSheet({ catalog, index, onGo, onClose, initialTab = "map" }:
         </div>
       </div>
 
-      <form className="jump__form" onSubmit={submit} noValidate>
-        <label className="sr-only" htmlFor="jump-page">
-          Page number
+      <form className="search" onSubmit={submit} role="search">
+        <IconSearch />
+        <label className="sr-only" htmlFor="nav-search">
+          Search by sūrah name, sūrah number or page
         </label>
-        <input
-          id="jump-page"
-          className="jump__input"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          autoComplete="off"
-          placeholder="Go to page"
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value.replace(/[^0-9]/g, ""));
-            setError(null);
-          }}
-        />
-        <button type="submit" className="btn btn--primary">
-          Go
-        </button>
+        <input id="nav-search" type="search" inputMode="search" enterKeyHint="go" autoComplete="off" autoCorrect="off" spellCheck={false} placeholder="Sūrah name, number or page" value={text} onChange={(e) => setText(e.target.value)} />
+        {text && (
+          <button type="button" className="search__clear" onClick={() => setText("")} aria-label="Clear search">
+            Clear
+          </button>
+        )}
       </form>
-      {error && (
-        <p className="jump__error" role="alert">
-          {error}
-        </p>
-      )}
 
-      <div className="tabs" role="tablist" aria-label="Navigate by">
-        <button type="button" role="tab" id="tab-map" aria-selected={tab === "map"} aria-controls="panel-nav" onClick={() => setTab("map")}>
-          <IconMap /> Map
-        </button>
-        <button type="button" role="tab" id="tab-contents" aria-selected={tab === "contents"} aria-controls="panel-nav" onClick={() => setTab("contents")}>
-          <IconList /> Contents
-        </button>
-        <button type="button" role="tab" id="tab-marks" aria-selected={tab === "marks"} aria-controls="panel-nav" onClick={() => setTab("marks")}>
-          <IconStar size={20} /> Marks{marks.pages.length > 0 && <b>{marks.pages.length}</b>}
-        </button>
-      </div>
+      {hits === null && (
+        <div className="tabs" role="tablist" aria-label="Browse by">
+          <button type="button" role="tab" id="tab-surahs" aria-selected={tab === "surahs"} aria-controls="panel-nav" onClick={() => setTab("surahs")}>
+            <IconList /> Surahs
+          </button>
+          <button type="button" role="tab" id="tab-parts" aria-selected={tab === "parts"} aria-controls="panel-nav" onClick={() => setTab("parts")}>
+            <IconPages /> Parts
+          </button>
+          <button type="button" role="tab" id="tab-map" aria-selected={tab === "map"} aria-controls="panel-nav" onClick={() => setTab("map")}>
+            <IconMap /> Map
+          </button>
+          <button type="button" role="tab" id="tab-marks" aria-selected={tab === "marks"} aria-controls="panel-nav" onClick={() => setTab("marks")}>
+            <IconStar size={20} /> Marks{marks.pages.length > 0 && <b>{marks.pages.length}</b>}
+          </button>
+        </div>
+      )}
     </>
   );
 
-  return (
-    <Sheet label="Navigate the book" onClose={onClose} header="Navigate" tall sticky={sticky}>
-      <div role="tabpanel" id="panel-nav" aria-labelledby={`tab-${tab}`}>
-        {tab === "map" && <PageMap catalog={catalog} index={index} isRead={(p) => reading.isRead(p)} saved={marks.pages} onGo={go} />}
+  const shownSurahs = catalog.surahs.filter((s) => place === "all" || s.place === place);
 
-        {tab === "contents" && (
-          <ul className="toc">
-            {catalog.sections.map((s) => {
-              const pages = catalog.pages.filter((p) => p >= s.from && p <= s.to);
-              const pct = Math.round((reading.countRead(pages) / pages.length) * 100);
-              const chapters = catalog.chapters.filter((c) => c.page >= s.from && c.page <= s.to);
-              return (
-                <li key={s.id}>
-                  <button type="button" className={`toc__row toc__row--section${s.id === section.id ? " is-on" : ""}`} onClick={() => go(catalog.sectionStartIndex(s))}>
-                    <strong>{s.label}</strong>
-                    <small>
-                      {fmt(pages.length)} pages{pct ? `  ·  ${pct}% read` : ""}
-                    </small>
-                    <i className="toc__bar" style={{ width: `${pct}%` }} />
-                  </button>
-                  {chapters.map((c) => (
-                    <button key={c.page} type="button" className={`toc__row toc__row--chapter${chapter?.page === c.page ? " is-on" : ""}`} onClick={() => go(catalog.indexOf(c.page))}>
-                      <strong>{c.title}</strong>
-                      {c.sub && <small>{c.sub}</small>}
-                      <span className="toc__page">{c.page}</span>
+  return (
+    <Sheet label="Index of the book" onClose={onClose} header="Index" tall sticky={sticky}>
+      <div role={hits === null ? "tabpanel" : "region"} id="panel-nav" aria-labelledby={hits === null ? `tab-${tab}` : undefined} aria-label={hits === null ? undefined : "Search results"} ref={body}>
+        {hits !== null &&
+          (hits.length === 0 ? (
+            <div className="empty">
+              <IconSearch />
+              <strong>Nothing found</strong>
+              <p>Try a sūrah name such as Baqarah, a sūrah number, a page number, or "part 5".</p>
+            </div>
+          ) : (
+            <ul className="slist" aria-live="polite">
+              {hits.map((h) => {
+                if (h.kind === "surah") return surahRow(h.surah);
+                if (h.kind === "section") return sectionRow(h.id);
+                if (h.kind === "part") {
+                  const p = catalog.parts[h.part - 1];
+                  return (
+                    <li key={`part${h.part}`}>
+                      <button type="button" className="srow srow--page" onClick={() => goPage(p.page)}>
+                        <span className="srow__n">{h.part}</span>
+                        <span className="srow__main">
+                          <strong>Part {h.part}</strong>
+                          <small>
+                            {catalog.surahs[p.surah - 1].name}, āyah {p.ayah}
+                          </small>
+                        </span>
+                        <span className="srow__page">
+                          <small>page</small>
+                          {p.page}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                }
+                return (
+                  <li key={`page${h.page}`}>
+                    <button type="button" className="srow srow--page" onClick={() => goPage(h.page)}>
+                      <span className="srow__n" aria-hidden="true">
+                        <IconPages />
+                      </span>
+                      <span className="srow__main">
+                        <strong>Go to page {h.page}</strong>
+                        <small>{h.note ?? catalog.surahAt(catalog.indexOf(h.page))?.name ?? catalog.sectionAt(catalog.indexOf(h.page)).label}</small>
+                      </span>
+                      <span className="srow__page">
+                        <small>page</small>
+                        {h.page}
+                      </span>
                     </button>
-                  ))}
+                  </li>
+                );
+              })}
+            </ul>
+          ))}
+
+        {hits === null && tab === "surahs" && (
+          <>
+            <div className="chips" role="radiogroup" aria-label="Filter sūrahs">
+              <button type="button" role="radio" aria-checked={place === "all"} className={place === "all" ? "is-on" : ""} onClick={() => setPlace("all")}>
+                All {catalog.surahs.length}
+              </button>
+              <button type="button" role="radio" aria-checked={place === "Makkah"} className={place === "Makkah" ? "is-on" : ""} onClick={() => setPlace("Makkah")}>
+                Makkah {places.Makkah}
+              </button>
+              <button type="button" role="radio" aria-checked={place === "Madinah"} className={place === "Madinah" ? "is-on" : ""} onClick={() => setPlace("Madinah")}>
+                Madinah {places.Madinah}
+              </button>
+            </div>
+            <ul className="slist">{shownSurahs.map(surahRow)}</ul>
+            {place === "all" && (
+              <>
+                <h3 className="slist__head">Also in the book</h3>
+                <ul className="slist">{catalog.sections.slice(1).map((s) => sectionRow(s.id))}</ul>
+              </>
+            )}
+          </>
+        )}
+
+        {hits === null && tab === "parts" && (
+          <ul className="plist">
+            {catalog.parts.map((p) => {
+              const on = herePart === p.part;
+              return (
+                <li key={p.part} className={`part${on ? " is-on" : ""}`}>
+                  <button type="button" className="part__head" aria-current={on ? "true" : undefined} onClick={() => goPage(p.page)}>
+                    <span className="part__n">{p.part}</span>
+                    <span className="part__title">
+                      <strong>Part {p.part}</strong>
+                      <small>
+                        from {catalog.surahs[p.surah - 1].name}, āyah {p.ayah}
+                      </small>
+                    </span>
+                    <span className="srow__page">
+                      <small>{p.about ? "about page" : "page"}</small>
+                      {p.page}
+                    </span>
+                  </button>
+                  <div className="part__surahs">
+                    {catalog.surahsInPart(p.part).map(({ surah, continues }) => (
+                      <button key={surah.number} type="button" className="pill" onClick={() => goPage(continues ? Math.max(surah.page, p.page) : surah.page)}>
+                        <i>{surah.number}</i> {surah.name}
+                        {continues && <em>continued</em>}
+                      </button>
+                    ))}
+                  </div>
                 </li>
               );
             })}
-            {catalog.chapters.length < 2 && <li className="toc__note">Chapter titles are listed here when they are added to the book catalog.</li>}
           </ul>
         )}
 
-        {tab === "marks" &&
+        {hits === null && tab === "map" && <PageMap catalog={catalog} index={index} isRead={(p) => reading.isRead(p)} saved={marks.pages} onGo={go} />}
+
+        {hits === null &&
+          tab === "marks" &&
           (marks.pages.length === 0 ? (
             <div className="empty">
               <IconStar size={44} />
@@ -176,21 +356,25 @@ export function JumpSheet({ catalog, index, onGo, onClose, initialTab = "map" }:
             </div>
           ) : (
             <ul className="marks">
-              {marks.pages.map((p) => (
-                <li key={p} className="mark">
-                  <button type="button" className="mark__go" onClick={() => go(catalog.nearestIndex(p))} aria-label={`Go to page ${p}`}>
-                    <strong>{p}</strong>
-                    <small>{catalog.sectionAt(catalog.nearestIndex(p)).label}</small>
-                  </button>
-                  <label className="sr-only" htmlFor={`note-${p}`}>
-                    Note for page {p}
-                  </label>
-                  <input id={`note-${p}`} className="mark__note" placeholder="Add a note" maxLength={160} value={marks.notes[p] ?? ""} onChange={(e) => bookmarks.setNote(p, e.target.value)} />
-                  <button type="button" className="icon-btn" onClick={() => bookmarks.remove(p)} aria-label={`Remove bookmark on page ${p}`}>
-                    <IconTrash />
-                  </button>
-                </li>
-              ))}
+              {marks.pages.map((p) => {
+                const i = catalog.nearestIndex(p);
+                const x = catalog.surahAt(i);
+                return (
+                  <li key={p} className="mark">
+                    <button type="button" className="mark__go" onClick={() => go(i)} aria-label={`Go to page ${p}`}>
+                      <strong>{p}</strong>
+                      <small>{x ? x.name : catalog.sectionAt(i).label}</small>
+                    </button>
+                    <label className="sr-only" htmlFor={`note-${p}`}>
+                      Note for page {p}
+                    </label>
+                    <input id={`note-${p}`} className="mark__note" placeholder="Add a note" maxLength={160} value={marks.notes[p] ?? ""} onChange={(e) => bookmarks.setNote(p, e.target.value)} />
+                    <button type="button" className="icon-btn" onClick={() => bookmarks.remove(p)} aria-label={`Remove bookmark on page ${p}`}>
+                      <IconTrash />
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           ))}
       </div>

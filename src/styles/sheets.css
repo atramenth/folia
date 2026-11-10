@@ -41,6 +41,8 @@ input[type="range"]::-moz-range-thumb { width: 1.3rem; height: 1.3rem; border-ra
 
 /* Navigate */
 .stats { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 1rem; padding: 0.4rem 0 1rem; }
+.stats--compact { padding-bottom: 0.7rem; }
+.stats--compact .ring { width: 3.4rem; height: 3.4rem; }
 .ring__track { fill: none; stroke: var(--border-strong); stroke-width: 4; }
 .ring__arc { fill: none; stroke: var(--gilt); stroke-width: 4; stroke-linecap: round; }
 .ring__text { font-family: var(--font-display); font-size: 21px; font-weight: 500; fill: var(--text); }
@@ -57,9 +59,9 @@ input[type="range"]::-moz-range-thumb { width: 1.3rem; height: 1.3rem; border-ra
 .jump__input:focus-visible { outline-offset: 1px; }
 .jump__error { margin: -0.3rem 0.3rem 0.8rem; font-size: 0.86rem; color: var(--gilt); }
 
-.tabs { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0 -0.4rem; }
-.tabs button { display: flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: 3rem; font-size: 0.92rem; color: var(--text-3); border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; }
-.tabs button svg { width: 1.15rem; height: 1.15rem; }
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0 -0.4rem; }
+.tabs button { display: flex; align-items: center; justify-content: center; gap: 0.3rem; min-height: 3rem; font-size: 0.86rem; color: var(--text-3); border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; }
+.tabs button svg { width: 1.05rem; height: 1.05rem; }
 .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--gilt); }
 .tabs b { display: inline-grid; place-items: center; min-width: 1.3rem; height: 1.3rem; padding: 0 0.3rem; border-radius: 999px; background: var(--gilt-dim); color: var(--gilt); font-family: var(--font-mono); font-size: 0.68rem; font-weight: 500; }
 
@@ -125,3 +127,48 @@ input[type="range"]::-moz-range-thumb { width: 1.3rem; height: 1.3rem; border-ra
   .sheet, .sheet-backdrop, .welcome { animation: none; }
   .welcome__mark { animation: none; }
 }
+
+/* Search */
+.search { display: flex; align-items: center; gap: 0.6rem; height: 3.1rem; margin-bottom: 0.6rem; padding: 0 0.5rem 0 1.1rem; border: 1px solid var(--border-strong); border-radius: 999px; background: var(--surface); color: var(--text-3); }
+.search:focus-within { border-color: var(--gilt); }
+.search svg { flex: none; width: 1.2rem; height: 1.2rem; }
+.search input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; color: var(--text); font-size: 1rem; outline: 0; -webkit-appearance: none; appearance: none; }
+.search input::placeholder { color: var(--text-3); }
+.search input::-webkit-search-cancel-button { display: none; }
+.search__clear { flex: none; height: 2.3rem; padding: 0 0.9rem; border-radius: 999px; font-size: 0.82rem; color: var(--text-2); }
+.search__clear:hover { background: var(--surface); color: var(--text); }
+
+/* Index lists */
+.chips { display: flex; gap: 0.45rem; padding: 0.9rem 0 0.5rem; overflow-x: auto; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chips button { flex: none; min-height: 2.3rem; padding: 0 1rem; border: 1px solid var(--border-strong); border-radius: 999px; font-size: 0.85rem; color: var(--text-2); transition: background 0.2s, color 0.2s; }
+.chips button.is-on { background: var(--text); color: var(--bg); border-color: var(--text); }
+.slist, .plist { list-style: none; }
+.slist__head { padding: 1.4rem 0.2rem 0.4rem; font-size: 0.72rem; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+.srow { position: relative; display: grid; grid-template-columns: 2.4rem 1fr auto; align-items: center; gap: 0.7rem; width: 100%; padding: 0.8rem 0.3rem; border-bottom: 1px solid var(--border); text-align: left; transition: background 0.2s; }
+.srow:hover { background: var(--surface); }
+.srow__n { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-3); text-align: center; font-variant-numeric: tabular-nums; }
+.srow__main { display: grid; min-width: 0; }
+.srow__main strong { font-family: var(--font-display); font-weight: 500; font-size: 1.4rem; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.srow__main small { font-size: 0.74rem; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.srow__page { display: grid; justify-items: end; font-family: var(--font-display); font-size: 1.35rem; line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
+.srow__page small { margin-bottom: 0.15rem; font-family: var(--font-body); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.srow.is-on { background: var(--gilt-dim); }
+.srow.is-on .srow__main strong, .srow.is-on .srow__n { color: var(--gilt); }
+.srow__bar { position: absolute; left: 0; bottom: -1px; height: 2px; background: var(--gilt); }
+.srow--page .srow__n svg { width: 1.3rem; height: 1.3rem; color: var(--gilt); }
+
+/* Parts */
+.part { padding: 0.5rem 0 0.9rem; border-bottom: 1px solid var(--border); }
+.part__head { display: grid; grid-template-columns: 3rem 1fr auto; align-items: center; gap: 0.7rem; width: 100%; padding: 0.4rem 0.2rem; border-radius: 12px; text-align: left; }
+.part__head:hover { background: var(--surface); }
+.part__n { font-family: var(--font-display); font-weight: 300; font-size: 2.6rem; line-height: 1; text-align: center; color: var(--gilt); font-variant-numeric: lining-nums; }
+.part__title { display: grid; }
+.part__title strong { font-family: var(--font-display); font-weight: 500; font-size: 1.3rem; line-height: 1.1; }
+.part__title small { font-size: 0.74rem; color: var(--text-3); }
+.part.is-on .part__title strong { color: var(--gilt); }
+.part__surahs { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.4rem 0 0 3.7rem; }
+.pill { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.1rem; padding: 0 0.8rem 0 0.4rem; border: 1px solid var(--border-strong); border-radius: 999px; font-size: 0.82rem; color: var(--text-2); transition: background 0.2s; }
+.pill:hover { background: var(--surface); color: var(--text); }
+.pill i { display: inline-grid; place-items: center; min-width: 1.45rem; height: 1.45rem; padding: 0 0.25rem; border-radius: 999px; background: var(--surface); font-style: normal; font-family: var(--font-mono); font-size: 0.64rem; color: var(--text-3); }
+.pill em { font-style: italic; font-size: 0.74rem; color: var(--text-3); }
