@@ -325,17 +325,20 @@ export default function App() {
         </div>
       </header>
 
-      <Scrubber
-        count={catalog.total}
-        value={index}
-        sections={sectionMarks}
-        parts={partMarks}
-        saved={savedIndexes}
-        labelFor={label}
-        captionFor={caption}
-        onPreview={setPreview}
-        onCommit={navigate}
-      />
+      {/* The fast scroll rail belongs to the continuous reader only; swiping pages needs no rail. */}
+      {mode === "flow" && (
+        <Scrubber
+          count={catalog.total}
+          value={index}
+          sections={sectionMarks}
+          parts={partMarks}
+          saved={savedIndexes}
+          labelFor={label}
+          captionFor={caption}
+          onPreview={setPreview}
+          onCommit={navigate}
+        />
+      )}
 
       <div className="dockwrap">
         <nav className="dock" aria-label="Reading controls">
