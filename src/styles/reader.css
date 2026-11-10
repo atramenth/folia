@@ -103,8 +103,8 @@
   transition: padding 0.35s var(--ease-settle);
   will-change: transform;
 }
-.viewer[data-chrome="on"] { --pad-top: calc(var(--top-h) + env(safe-area-inset-top)); --pad-bottom: calc(5.6rem + env(safe-area-inset-bottom)); }
-.viewer[data-chrome="off"] { --pad-top: calc(0.4rem + env(safe-area-inset-top)); --pad-bottom: calc(0.4rem + env(safe-area-inset-bottom)); }
+.viewer[data-chrome="on"] { --pad-top: calc(var(--top-h) + var(--safe-top)); --pad-bottom: calc(5.6rem + env(safe-area-inset-bottom)); }
+.viewer[data-chrome="off"] { --pad-top: calc(0.4rem + var(--safe-top)); --pad-bottom: calc(0.4rem + env(safe-area-inset-bottom)); }
 .slide__img {
   display: block;
   min-width: 0;

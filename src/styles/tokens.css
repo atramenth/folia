@@ -5,6 +5,8 @@
    where you are, what you kept, how far you have come. Surfaces stay flat. */
 
 :root {
+  /* Space kept clear under the iPhone status bar, which blurs and fades what sits just beneath it in the home screen app. */
+  --safe-top: calc(env(safe-area-inset-top, 0px) + 0.9rem);
   color-scheme: dark;
   --bg: #07080a;
   --paper: #101316;
