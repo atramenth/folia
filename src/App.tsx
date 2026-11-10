@@ -10,7 +10,7 @@ import type { Direction, TapZone } from "./domain/types.ts";
 import { useStore } from "./hooks/useStore.ts";
 import { useViewer } from "./hooks/useViewer.ts";
 import { bookmarks } from "./services/BookmarkStore.ts";
-import { catalog, hashLocation, reading } from "./services/library.ts";
+import { catalog, pageLocation, reading } from "./services/library.ts";
 import { progress } from "./services/ProgressStore.ts";
 import { settings } from "./services/SettingsStore.ts";
 import { Slideshow } from "./services/Slideshow.ts";
@@ -19,9 +19,12 @@ type SheetName = "nav" | "display" | null;
 
 const canFullscreen = typeof document !== "undefined" && document.fullscreenEnabled;
 const sectionMarks = catalog.sectionMarks();
-const chapterMarks = catalog.chapterMarks();
+const partMarks = catalog.partMarks();
 const label = (i: number) => String(catalog.pageAt(i));
-const caption = (i: number) => catalog.chapterAt(i)?.title ?? catalog.sectionAt(i).label;
+const caption = (i: number) => {
+  const x = catalog.surahAt(i);
+  return x ? `${x.name}, part ${catalog.partAt(i)}` : catalog.sectionAt(i).label;
+};
 
 /** How long a page must stay in view before it counts as read. */
 const READ_AFTER_MS = 2500;
@@ -41,7 +44,7 @@ export default function App() {
   const [chrome, setChrome] = useState(true);
   const [zoomed, setZoomed] = useState(false);
   const [sheet, setSheet] = useState<SheetName>(null);
-  const [navTab, setNavTab] = useState<NavTab>("map");
+  const [navTab, setNavTab] = useState<NavTab>("surahs");
   const [playing, setPlaying] = useState(false);
   const [preview, setPreview] = useState<number | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
@@ -52,7 +55,8 @@ export default function App() {
   const mode = s.mode;
   const shownIndex = preview ?? index;
   const section = catalog.sectionAt(shownIndex);
-  const chapter = catalog.chapterAt(shownIndex);
+  const surah = catalog.surahAt(shownIndex);
+  const part = catalog.partAt(shownIndex);
   const isSaved = saved.includes(page);
   const savedIndexes = useMemo(() => saved.map((p) => catalog.nearestIndex(p)), [saved]);
   const paused = sheet !== null || (mode === "pages" && zoomed) || preview !== null || !hintSeen;
@@ -87,7 +91,7 @@ export default function App() {
     [navigate],
   );
 
-  const openNav = useCallback((tab: NavTab = "map") => {
+  const openNav = useCallback((tab: NavTab = "surahs") => {
     setNavTab(tab);
     setSheet("nav");
   }, []);
@@ -134,7 +138,7 @@ export default function App() {
   }, []);
 
   // A link changed the page (the address bar, a bookmark on another device).
-  useEffect(() => hashLocation.subscribe((p) => navigate(catalog.nearestIndex(p), false)), [navigate]);
+  useEffect(() => pageLocation.subscribe((p) => navigate(catalog.nearestIndex(p), false)), [navigate]);
 
   // Pages mode shows its place on the rail directly; the continuous reader updates it as it scrolls.
   useEffect(() => {
@@ -244,7 +248,7 @@ export default function App() {
           break;
         case "g":
         case "G":
-          openNav("map");
+          openNav("surahs");
           break;
         case "f":
         case "F":
@@ -270,8 +274,8 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, [sheet, hintSeen, step, navigate, togglePlay, toggleBookmark, openNav, toggleFullscreen]);
 
-  const headline = chapter ? chapter.title : section.label;
-  const kicker = chapter?.sub ?? (chapter ? section.label : "Folia");
+  const headline = surah ? surah.name : section.label;
+  const kicker = surah ? `Sūrah ${surah.number} · Part ${part}` : "Folia";
   const percent = Math.round(catalog.fraction(shownIndex) * 100);
   const showBack = origin !== null && Math.abs(index - origin) >= FAR && sheet === null;
 
@@ -300,7 +304,7 @@ export default function App() {
       <i className="hairline" aria-hidden="true" />
 
       <header className="bar bar--top">
-        <button type="button" className="brand" onClick={() => openNav("contents")} aria-label={`${headline}. Open contents`}>
+        <button type="button" className="brand" onClick={() => openNav("surahs")} aria-label={`${headline}. Open the index`}>
           <span className="brand__mark" aria-hidden="true">
             <IconStar size={26} />
           </span>
@@ -325,7 +329,7 @@ export default function App() {
         count={catalog.total}
         value={index}
         sections={sectionMarks}
-        chapters={chapterMarks}
+        parts={partMarks}
         saved={savedIndexes}
         labelFor={label}
         captionFor={caption}
@@ -335,10 +339,10 @@ export default function App() {
 
       <div className="dockwrap">
         <nav className="dock" aria-label="Reading controls">
-          <button type="button" className="icon-btn" onClick={() => openNav("map")} aria-label="Navigate: map, contents and bookmarks">
+          <button type="button" className="icon-btn" onClick={() => openNav("surahs")} aria-label="Index: sūrahs, parts, map and bookmarks">
             <IconMap />
           </button>
-          <button type="button" className="readout" onClick={() => openNav("map")} aria-label={`Page ${catalog.pageAt(shownIndex)}. Open the book map`}>
+          <button type="button" className="readout" onClick={() => openNav("surahs")} aria-label={`Page ${catalog.pageAt(shownIndex)}. Open the index`}>
             <strong>{catalog.pageAt(shownIndex)}</strong>
             <small>
               of {catalog.lastPage.toLocaleString("en-US")} <span aria-hidden="true">·</span> {percent}%
@@ -374,8 +378,7 @@ export default function App() {
       )}
 
       <p className="sr-only" aria-live="polite">
-        Page {page}, {chapter ? `${chapter.title}, ` : ""}
-        {section.label}
+        Page {page}, {surah ? `${surah.name}, part ${part}` : section.label}
       </p>
 
       {sheet === "nav" && <JumpSheet catalog={catalog} index={index} onGo={(i) => navigate(i)} onClose={closeSheet} initialTab={navTab} />}

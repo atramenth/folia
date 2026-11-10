@@ -1,4 +1,4 @@
-import type { ChapterDef, Direction, SectionDef } from "./types.ts";
+import type { Direction, PartDef, SectionDef, SurahDef } from "./types.ts";
 
 /**
  * The ordered set of pages. Positions are zero based indexes into the set;
@@ -7,13 +7,13 @@ import type { ChapterDef, Direction, SectionDef } from "./types.ts";
 export class PageCatalog {
   readonly sections: readonly SectionDef[];
   readonly pages: readonly number[];
-  /** Chapters that exist in this catalog, in page order. */
-  readonly chapters: readonly ChapterDef[];
+  /** The sūrahs that exist in this catalog, in page order. */
+  readonly surahs: readonly SurahDef[];
+  /** The parts that exist in this catalog, in page order. */
+  readonly parts: readonly PartDef[];
   private readonly positions: ReadonlyMap<number, number>;
 
-  private readonly chaptersComplete: boolean;
-
-  constructor(sections: readonly SectionDef[], chapters: readonly ChapterDef[] = [], chaptersComplete = false) {
+  constructor(sections: readonly SectionDef[], surahs: readonly SurahDef[] = [], parts: readonly PartDef[] = []) {
     const pages: number[] = [];
     let previousEnd = 0;
     for (const s of sections) {
@@ -28,8 +28,8 @@ export class PageCatalog {
     this.sections = sections;
     this.pages = pages;
     this.positions = new Map(pages.map((p, i) => [p, i]));
-    this.chaptersComplete = chaptersComplete;
-    this.chapters = chapters.filter((c) => this.positions.has(c.page)).sort((a, b) => a.page - b.page);
+    this.surahs = surahs.filter((x) => this.positions.has(x.page)).sort((a, b) => a.page - b.page);
+    this.parts = parts.filter((x) => this.positions.has(x.page)).sort((a, b) => a.page - b.page);
   }
 
   get total(): number {
@@ -96,21 +96,63 @@ export class PageCatalog {
     return this.pages.filter((p) => p >= section.from && p <= section.to).length;
   }
 
-  /** The chapter that is open at this position, or null when none is known to be. */
-  chapterAt(index: number): ChapterDef | null {
+  /** The sūrah that is open at this position, or null in the Introduction and the Index. */
+  surahAt(index: number): SurahDef | null {
     const page = this.pageAt(index);
-    for (let k = this.chapters.length - 1; k >= 0; k--) {
-      const c = this.chapters[k];
-      if (c.page > page) continue;
-      const end = c.to ?? (this.chaptersComplete ? Infinity : c.page);
-      return page <= end ? c : null;
+    const quran = this.sections[0];
+    if (page > quran.to) return null;
+    let found: SurahDef | null = null;
+    for (const x of this.surahs) {
+      if (x.page <= page) found = x;
+      else break;
     }
-    return null;
+    return found;
   }
 
-  /** Positions where each chapter begins, for the ticks on the scrubber. */
-  chapterMarks(): number[] {
-    return this.chapters.map((c) => this.indexOf(c.page));
+  /** The part (1 to 30) that is open at this position, or 0 outside the Qur'ān. */
+  partAt(index: number): number {
+    const page = this.pageAt(index);
+    if (page > this.sections[0].to) return 0;
+    let found = 0;
+    for (const x of this.parts) {
+      if (x.page <= page) found = x.part;
+      else break;
+    }
+    return found;
+  }
+
+  /** The part that holds a given āyah of a sūrah. */
+  partOfAyah(surah: number, ayah: number): number {
+    let part = 1;
+    for (const x of this.parts) if (x.surah < surah || (x.surah === surah && x.ayah <= ayah)) part = x.part;
+    return part;
+  }
+
+  /** The first and last part a sūrah runs through. */
+  partsOfSurah(x: SurahDef): { first: number; last: number } {
+    return { first: this.partOfAyah(x.number, 1), last: this.partOfAyah(x.number, x.ayat) };
+  }
+
+  /** Every sūrah that has āyāt in a part, with whether it began in an earlier part. */
+  surahsInPart(part: number): { surah: SurahDef; continues: boolean }[] {
+    const out: { surah: SurahDef; continues: boolean }[] = [];
+    for (const x of this.surahs) {
+      const { first, last } = this.partsOfSurah(x);
+      if (part >= first && part <= last) out.push({ surah: x, continues: part > first });
+    }
+    return out;
+  }
+
+  /** Last printed page of a sūrah: the page before the next one begins (they can share a page). */
+  surahEnd(x: SurahDef): number {
+    const i = this.surahs.indexOf(x);
+    const next = this.surahs[i + 1];
+    return next ? Math.max(x.page, next.page - 1) : this.sections[0].to;
+  }
+
+  /** Positions where each of the 30 parts begins, for the ticks on the scrubber. */
+  partMarks(): number[] {
+    return this.parts.map((p) => this.indexOf(p.page));
   }
 
   /** How far through the book a position is, from 0 to 1. */

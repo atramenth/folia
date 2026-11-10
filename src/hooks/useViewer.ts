@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { PageCatalog } from "../domain/PageCatalog.ts";
-import { hashLocation, pageImages } from "../services/library.ts";
+import { pageLocation, pageImages } from "../services/library.ts";
 import { progress } from "../services/ProgressStore.ts";
 
 /**
@@ -10,7 +10,7 @@ import { progress } from "../services/ProgressStore.ts";
  */
 export function useViewer(catalog: PageCatalog) {
   const [index, setIndex] = useState(() => {
-    const linked = hashLocation.read();
+    const linked = pageLocation.read();
     if (linked !== null) return catalog.nearestIndex(linked);
     const saved = progress.getSnapshot().page;
     return saved > 0 ? catalog.nearestIndex(saved) : 0;
@@ -19,7 +19,7 @@ export function useViewer(catalog: PageCatalog) {
   useEffect(() => {
     const page = catalog.pageAt(index);
     progress.setPage(page);
-    hashLocation.write(page);
+    pageLocation.write(page);
     // Warm the pages most likely to be wanted next: two ahead, one behind.
     pageImages.preload([catalog.pageAt(index + 1), catalog.pageAt(index + 2), catalog.pageAt(index - 1)]);
   }, [index, catalog]);

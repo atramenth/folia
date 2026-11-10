@@ -6,12 +6,12 @@ interface Props {
   value: number;
   /** Positions where a new section starts. */
   sections: number[];
-  /** Positions where a chapter starts. */
-  chapters: number[];
+  /** Positions where each of the 30 parts starts. */
+  parts: number[];
   /** Positions of bookmarked pages. */
   saved: number[];
   labelFor: (position: number) => string;
-  /** Short line shown under the number while dragging, such as the chapter name. */
+  /** Short line shown under the number while dragging, such as the sūrah and part. */
   captionFor: (position: number) => string;
   onPreview: (position: number | null) => void;
   onCommit: (position: number) => void;
@@ -28,7 +28,7 @@ interface Drag {
  * exact page. Nothing loads until you let go. Where the handle sits comes from the --frac variable
  * the reader keeps up to date, so scrolling moves it without rendering anything.
  */
-export function Scrubber({ count, value, sections, chapters, saved, labelFor, captionFor, onPreview, onCommit }: Props) {
+export function Scrubber({ count, value, sections, parts, saved, labelFor, captionFor, onPreview, onCommit }: Props) {
   const model = useMemo(() => new ScrubModel(count), [count]);
   const geo = useRef<{ top: number; height: number; x: number } | null>(null);
   /** Where a touch began, until it has moved far enough to count as a drag rather than a tap. */
@@ -61,8 +61,13 @@ export function Scrubber({ count, value, sections, chapters, saved, labelFor, ca
         {sections.map((m) => (
           <i key={`s${m}`} className="rail__tick rail__tick--section" style={{ top: `${at(m)}%` }} />
         ))}
-        {chapters.map((m) => (
-          <i key={`c${m}`} className="rail__tick" style={{ top: `${at(m)}%` }} />
+        {parts.map((m, k) => (
+          <i key={`p${m}`} className="rail__tick rail__tick--part" style={{ top: `${at(m)}%` }} data-part={k + 1} />
+        ))}
+        {parts.map((m, k) => (
+          <span key={`l${m}`} className="rail__label" style={{ top: `${at(m)}%` }} aria-hidden="true">
+            {k + 1}
+          </span>
         ))}
         {saved.map((m) => (
           <i key={`b${m}`} className="rail__tick rail__tick--saved" style={{ top: `${at(m)}%` }} />
