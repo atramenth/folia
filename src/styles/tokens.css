@@ -6,7 +6,7 @@
 
 :root {
   /* Space kept clear under the iPhone status bar, which blurs and fades what sits just beneath it in the home screen app. */
-  --safe-top: calc(env(safe-area-inset-top, 0px) + 1rem);
+  --safe-top: calc(env(safe-area-inset-top, 0px) + 1.5rem);
   color-scheme: dark;
   --bg: #07080a;
   --paper: #101316;

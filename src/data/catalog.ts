@@ -172,10 +172,3 @@ export const PARTS: readonly PartDef[] = [
 /** Folder inside public/ that holds the images, and their file extension. */
 export const PAGES_DIR = "pages";
 export const PAGE_EXTENSION = "avif";
-
-/**
- * Height divided by width of a typical scanned page. The continuous reader reserves this much room
- * for every page so the scroll position stays exact before images arrive. Scans that differ a
- * little are fitted inside that room without distortion.
- */
-export const PAGE_RATIO = 1.4235;

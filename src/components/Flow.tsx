@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, type Ref } from "react";
-import { PAGE_RATIO } from "../data/catalog.ts";
+import { PAGE_RATIO } from "../domain/PageFrame.ts";
 import type { PageCatalog } from "../domain/PageCatalog.ts";
 import type { Direction, TapZone } from "../domain/types.ts";
 import { ZOOM_MAX, ZOOM_MIN } from "../services/SettingsStore.ts";

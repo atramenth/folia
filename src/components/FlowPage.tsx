@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef, useState, type CSSProperties } from "react";
 import { pageImages } from "../services/library.ts";
+import { frameStyle } from "../domain/PageFrame.ts";
 import { IconStar } from "./Icons.tsx";
 
 interface Props {
@@ -40,6 +41,7 @@ export const FlowPage = memo(function FlowPage({ page, position }: Props) {
         ref={img}
         className={`fp__img${status === "ready" ? " is-ready" : ""}${instant.current ? " is-instant" : ""}`}
         src={src}
+        style={frameStyle(page)}
         alt={`Page ${page}`}
         draggable={false}
         decoding="async"

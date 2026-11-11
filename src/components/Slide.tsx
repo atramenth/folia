@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { pageImages } from "../services/library.ts";
+import { PAGE_RATIO, frameStyle } from "../domain/PageFrame.ts";
 import { IconStar } from "./Icons.tsx";
 
 interface Props {
@@ -26,17 +27,20 @@ export function Slide({ page, offset }: Props) {
   return (
     <div className="slide" data-current={offset === 0} style={{ transform: `translate3d(${offset * 100}%,0,0)` }} aria-hidden={offset !== 0}>
       <div className="slide__zoom">
-        <img
-          ref={img}
-          className={`slide__img${status === "ready" ? " is-ready" : ""}`}
-          src={src}
-          alt={`Page ${page}`}
-          draggable={false}
-          decoding="async"
-          fetchPriority={offset === 0 ? "high" : "low"}
-          onLoad={() => setStatus("ready")}
-          onError={() => setStatus("error")}
-        />
+        <div className="slide__page" style={{ aspectRatio: `1 / ${PAGE_RATIO}`, width: `min(100cqw, calc(100cqh / ${PAGE_RATIO}))` }}>
+          <img
+            ref={img}
+            className={`slide__img${status === "ready" ? " is-ready" : ""}`}
+            style={frameStyle(page)}
+            src={src}
+            alt={`Page ${page}`}
+            draggable={false}
+            decoding="async"
+            fetchPriority={offset === 0 ? "high" : "low"}
+            onLoad={() => setStatus("ready")}
+            onError={() => setStatus("error")}
+          />
+        </div>
         {status === "loading" && (
           <div className="slide__state" role="status">
             <span className="spinner" aria-hidden="true">
